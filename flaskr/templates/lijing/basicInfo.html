@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+
+
+{% block header %}
+<h1>{% block title %}lijing{% endblock %}</h1>
+
+<script type=text/javascript>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
+
+{% endblock %}
+
+{% block tools %}
+<div class="list-group">
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
+        data-target="#demo">教师管理</a>
+    <div class="list-group collapse show" id="demo">
+        <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action active">教师基本信息</a>
+        <a href="#" class="list-group-item list-group-item-action">教师业务档案</a>
+        <a href="#" class="list-group-item list-group-item-action">教师荣誉档案</a>
+    </div>
+    <a href="#" class="list-group-item list-group-item-action">模块二</a>
+    <a href="#" class="list-group-item list-group-item-action">模块三</a>
+</div>
+
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1>教师基本信息</h1>
+</div>
+
+<!-- <form style="display:none"> -->
+<form>
+    <div class="form-group">
+        <label for="exampleFormControlFile1">Example file input</label>
+        <input type="file" class="form-control-file" id="exampleFormControlFile1">
+    </div>
+</form>
+
+<div class="custom-file">
+    <input type="file" class="custom-file-input" id="customFile">
+    <label class="custom-file-label" for="customFile">Choose file</label>
+</div>
+
+<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
+    <div class="btn-group mr-2" role="group" aria-label="First group">
+        <button type="button" class="btn btn-secondary" onclick="add_person()">添加</button>
+    </div>
+    <div class="btn-group mr-2" role="group" aria-label="Second group">
+        <button type="button" class="btn btn-secondary" onclick="import_data()">导入</button>
+    </div>
+</div>
+<table id="table" class="table-striped" data-sortable="true"></table>
+
+
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-title">基本信息</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form>
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="name">姓名</label>
+                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="inputPassword4">性别</label>
+                            <input type="text" class="form-control" id="gender" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="id">身份证号</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="name">参加工作时间</label>
+                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="phone">联系电话</label>
+                            <input type="text" class="form-control" id="phone" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="name">政治面貌</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="name">入党时间</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="form-row">
+                        <div class="form-group col-md-2">
+                            <label for="name">第一学历</label>
+                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="inputPassword4">毕业时间</label>
+                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="name">毕业学校</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="name">专业</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="form-row">
+                        <div class="form-group col-md-2">
+                            <label for="name">最高学历</label>
+                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="inputPassword4">毕业时间</label>
+                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="name">毕业学校</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="name">专业</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="form-row">
+                        <div class="form-group col-md-2">
+                            <label for="name">专业技术职称</label>
+                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="inputPassword4">取得时间</label>
+                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="name">发证单位</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="name">发证文件批号</label>
+                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="name">用工性质</label>
+                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="inputPassword4">调入大集中学时间</label>
+                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="inputPassword4">退休时间</label>
+                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAddress">住址</label>
+                        <input type="text" class="form-control" id="inputAddress" placeholder="" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1">工作简历</label>
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="importModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-import-title">导入数据</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form action="{{ url_for('lijing.importData')}}" enctype='multipart/form-Data' method='POST'>     
+                    <div class="input-group">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="inputGroupFile04" name="file">
+                            <label class="custom-file-label" for="inputGroupFile04">选择文件</label>
+                        </div>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">导入</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button> -->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block files %}
+
+<script>
+
+    $('#table').bootstrapTable({
+        url: '/lijing/jsondata',  // 请求数据源的路由
+        method: 'get',
+        dataType: "json",
+        theadClasses: "thead-light",//标题样式
+        pagination: true, //前端处理分页
+        singleSelect: false,//是否只能单选
+        search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+        toolbar: '#toolbar', //工具按钮用哪个容器
+        cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        pageNumber: 1, //初始化加载第10页，默认第一页
+        pageSize: 10, //每页的记录行数（*）
+        pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+        smartDisplay: false,
+        strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+        showColumns: true, //显示内容列下拉框
+        showRefresh: true, //显示刷新按钮
+        minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+        clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+        uniqueId: "id", //每一行的唯一标识，一般为主键列
+        showToggle: true, //是否显示详细视图和列表视图的切换按钮
+        cardView: false, //是否显示详细视图
+        detailView: false,                   //是否显示父子表
+        sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+        columns: [{
+            checkbox: false  //第一列显示复选框
+        },
+        {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+            field: 'id',
+            title: '序号',
+            align: 'center',  //对齐方式，居中 
+        }, {
+            field: 'name',
+            title: '姓名',
+            align: 'center'
+        }, {
+            field: 'price',
+            title: '性别',
+            align: 'center',
+
+        }, {
+            title: '操作',
+            field: 'id',
+            align: 'center',
+            formatter: function (value, row, index) {
+                var e = '<a οnclick="edit1(\'' + row.id + '\')">编辑</a> ';  //row.id为每行的id
+                var d = '<a href="#" mce_href="#" οnclick="del(\'' + row.id + '\')">删除</a> ';
+                return e + d;
+            }
+        }
+        ],
+        onDblClickRow: function (row, $element, field) {
+            // ...
+            //window.alert(row['name']);
+            document.getElementById("modal-title").innerHTML = row.name + "--基本信息";
+
+            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
+                id: row.id
+            }, function (data) {
+                //window.alert(data.name);
+                document.getElementById("name").value = data.name;
+                document.getElementById("gender").value = data.price;
+            });
+            $("#myModal input").attr("readOnly", true);
+            $('#myModal').modal('show');
+        },
+    });
+
+    function edit1(id) {
+        window.alert(id);
+    };
+
+    function add_person() {
+        $('#myModal').modal('show');
+        $("#myModal input").attr("readOnly", false);
+    }
+
+    function import_data() {
+        $('#importModal').modal('show');
+    }
+</script>
+{% endblock %}

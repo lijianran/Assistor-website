@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+
+  <!-- Bootstrap CSS -->
+  <link href="../static/bootstrap-4.4.1-dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link href="../static/fontawesome-free-5.11.2-web/css/all.css" rel="stylesheet">
+  <link href="../static/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+  <link href="../static/style.css" rel="stylesheet">
+
+  <title>{% block title %}{% endblock %} - Flaskr</title>
+</head>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand">家庭网站</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample07"
+      aria-controls="navbarsExample07" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExample07">
+      <ul class="nav navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="{{ url_for('index') }}">主页</a>
+        </li>
+        {% if g.user %}
+        <li class="nav-item">
+          <a class="nav-link">{{ g.user['username'] }}</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.logout') }}">注销</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.register') }}">注册</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.login') }}">登陆</a>
+        </li>
+        {% endif %}
+        <li class="dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dropdown07" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">功能</a>
+          <ul class="nav-item dropdown">
+            <div class="dropdown-menu" aria-labelledby="dropdown07">
+              <a class="dropdown-item" href="#">李简然</a>
+              <a class="dropdown-item" href="{{ url_for('lijing.hello') }}">李警</a>
+              <a class="dropdown-item" href="#">简虹</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">关于</a>
+            </div>
+          </ul>
+        </li>
+      </ul>
+
+      <form class="form-inline my-2 my-md-0">
+        <input class="form-control" type="text" placeholder="Search" aria-label="Search">
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="row">
+    <div class="col-3" id="sidebar">
+      <div>
+        {% block tools %}{% endblock %}
+      </div>
+
+    </div>
+    <!--/.sidebar-offcanvas-->
+
+    <div class="col-9">
+
+      <section class="content">
+        <div class="page-header">
+          <h1>{% block header %}{% endblock %}</h1>
+        </div>
+
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-warning flash">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+      </section>
+
+    </div>
+    <!--/.col-xs-12.col-sm-9-->
+
+  </div>
+  <!--/row-->
+
+  <hr>
+
+  <footer>
+    <p>Family 2020</p>
+  </footer>
+
+</div>
+<!--/.container-->
+
+
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="../static/bootstrap-4.4.1-dist/js/jquery-3.3.1.min.js"></script>
+<script src="../static/bootstrap-4.4.1-dist/js/popper.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="../static/bootstrap-4.4.1-dist/js/bootstrap.min.js"></script>
+
+<!-- 加载 Bootstrap-table 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="../static/bootstrap-table/bootstrap-table.min.js"></script>
+<script src="../static/bootstrap-table/bootstrap-table-zh-CN.min.js"></script>
+
+
+{% block files %}{% endblock %}
+
+</html>

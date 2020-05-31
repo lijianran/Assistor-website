@@ -16,12 +16,12 @@
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
         data-target="#demo">教师管理</a>
     <div class="list-group collapse show" id="demo">
-        <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action active">教师基本信息</a>
-        <a href="#" class="list-group-item list-group-item-action">教师业务档案</a>
-        <a href="#" class="list-group-item list-group-item-action">教师荣誉档案</a>
+        <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action active">1.教师基本信息</a>
+        <a href="#" class="list-group-item list-group-item-action">2.教师业务档案</a>
+        <a href="#" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
     </div>
-    <a href="#" class="list-group-item list-group-item-action">模块二</a>
-    <a href="#" class="list-group-item list-group-item-action">模块三</a>
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
 </div>
 
 {% endblock %}
@@ -29,19 +29,6 @@
 {% block content %}
 <div class="jumbotron">
     <h1>教师基本信息</h1>
-</div>
-
-<!-- <form style="display:none"> -->
-<form>
-    <div class="form-group">
-        <label for="exampleFormControlFile1">Example file input</label>
-        <input type="file" class="form-control-file" id="exampleFormControlFile1">
-    </div>
-</form>
-
-<div class="custom-file">
-    <input type="file" class="custom-file-input" id="customFile">
-    <label class="custom-file-label" for="customFile">Choose file</label>
 </div>
 
 <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
@@ -70,114 +57,114 @@
                 <form>
                     <div class="form-row">
                         <div class="form-group col-md-3">
-                            <label for="name">姓名</label>
-                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                            <label for="person_name">姓名</label>
+                            <input type="text" class="form-control" id="person_name" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="inputPassword4">性别</label>
+                            <label for="gender">性别</label>
                             <input type="text" class="form-control" id="gender" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-6">
-                            <label for="id">身份证号</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="id_number">身份证号</label>
+                            <input type="text" class="form-control" id="id_number" placeholder="" readonly>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-3">
-                            <label for="name">参加工作时间</label>
-                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                            <label for="time_work">参加工作时间</label>
+                            <input type="text" class="form-control" id="time_work" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="phone">联系电话</label>
                             <input type="text" class="form-control" id="phone" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-2">
-                            <label for="name">政治面貌</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="political_status">政治面貌</label>
+                            <input type="text" class="form-control" id="political_status" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="name">入党时间</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="time_Party">入党时间</label>
+                            <input type="text" class="form-control" id="time_Party" placeholder="" readonly>
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div class="form-row">
                         <div class="form-group col-md-2">
-                            <label for="name">第一学历</label>
-                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                            <label for="edu_start">第一学历</label>
+                            <input type="text" class="form-control" id="edu_start" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="inputPassword4">毕业时间</label>
-                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                            <label for="time_edu_start">毕业时间</label>
+                            <input type="text" class="form-control" id="time_edu_start" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="name">毕业学校</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="school_edu_start">毕业学校</label>
+                            <input type="text" class="form-control" id="school_edu_start" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="name">专业</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="major_edu_start">专业</label>
+                            <input type="text" class="form-control" id="major_edu_start" placeholder="" readonly>
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div class="form-row">
                         <div class="form-group col-md-2">
-                            <label for="name">最高学历</label>
-                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                            <label for="edu_end">最高学历</label>
+                            <input type="text" class="form-control" id="edu_end" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="inputPassword4">毕业时间</label>
-                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                            <label for="time_edu_end">毕业时间</label>
+                            <input type="text" class="form-control" id="time_edu_end" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="name">毕业学校</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="school_edu_end">毕业学校</label>
+                            <input type="text" class="form-control" id="school_edu_end" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="name">专业</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="major_edu_end">专业</label>
+                            <input type="text" class="form-control" id="major_edu_end" placeholder="" readonly>
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div class="form-row">
                         <div class="form-group col-md-2">
-                            <label for="name">专业技术职称</label>
-                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                            <label for="skill_title">专业技术职称</label>
+                            <input type="text" class="form-control" id="skill_title" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="inputPassword4">取得时间</label>
-                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                            <label for="time_skill">取得时间</label>
+                            <input type="text" class="form-control" id="time_skill" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="name">发证单位</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="skill_unit">发证单位</label>
+                            <input type="text" class="form-control" id="skill_unit" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-3">
-                            <label for="name">发证文件批号</label>
-                            <input type="text" class="form-control" id="id" placeholder="" readonly>
+                            <label for="skill_number">发证文件批号</label>
+                            <input type="text" class="form-control" id="skill_number" placeholder="" readonly>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-4">
-                            <label for="name">用工性质</label>
-                            <input type="text" class="form-control" id="name" placeholder="" readonly>
+                            <label for="work_kind">用工性质</label>
+                            <input type="text" class="form-control" id="work_kind" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="inputPassword4">调入大集中学时间</label>
-                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                            <label for="time_school">调入大集中学时间</label>
+                            <input type="text" class="form-control" id="time_school" placeholder="" readonly>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="inputPassword4">退休时间</label>
-                            <input type="text" class="form-control" id="inputPassword4" placeholder="" readonly>
+                            <label for="time_retire">退休时间</label>
+                            <input type="text" class="form-control" id="time_retire" placeholder="" readonly>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="inputAddress">住址</label>
-                        <input type="text" class="form-control" id="inputAddress" placeholder="" readonly>
+                        <label for="address">住址</label>
+                        <input type="text" class="form-control" id="address" placeholder="" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="exampleFormControlTextarea1">工作简历</label>
-                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" readonly></textarea>
+                        <label for="resume">工作简历</label>
+                        <textarea class="form-control" id="resume" rows="3" readonly></textarea>
                     </div>
                 </form>
             </div>
@@ -204,11 +191,12 @@
 
             <!-- 模态框主体 -->
             <div class="modal-body">
-                <form action="{{ url_for('lijing.importData')}}" enctype='multipart/form-Data' method='POST'>     
+                <form action="{{ url_for('lijing.importData')}}" enctype='multipart/form-Data' method='POST'>
                     <div class="input-group">
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="inputGroupFile04" name="file">
-                            <label class="custom-file-label" for="inputGroupFile04">选择文件</label>
+                            <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input"
+                                id="inputGroupFile04" name="file">
+                            <label id="filename_label" class="custom-file-label" for="inputGroupFile04">选择文件</label>
                         </div>
                         <div class="input-group-append">
                             <button class="btn btn-primary" type="submit">导入</button>
@@ -257,32 +245,33 @@
         cardView: false, //是否显示详细视图
         detailView: false,                   //是否显示父子表
         sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
-        columns: [{
-            checkbox: false  //第一列显示复选框
-        },
-        {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
-            field: 'id',
-            title: '序号',
-            align: 'center',  //对齐方式，居中 
-        }, {
-            field: 'name',
-            title: '姓名',
-            align: 'center'
-        }, {
-            field: 'price',
-            title: '性别',
-            align: 'center',
+        columns: [
+            //{
+            //    checkbox: false  //第一列显示复选框
+            //},
+            {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+                field: 'id',
+                title: '序号',
+                align: 'center',  //对齐方式，居中 
+            }, {
+                field: 'name',
+                title: '姓名',
+                align: 'center'
+            }, {
+                field: 'gender',
+                title: '性别',
+                align: 'center',
 
-        }, {
-            title: '操作',
-            field: 'id',
-            align: 'center',
-            formatter: function (value, row, index) {
-                var e = '<a οnclick="edit1(\'' + row.id + '\')">编辑</a> ';  //row.id为每行的id
-                var d = '<a href="#" mce_href="#" οnclick="del(\'' + row.id + '\')">删除</a> ';
-                return e + d;
+            }, {
+                title: '操作',
+                field: 'id',
+                align: 'center',
+                formatter: function (value, row, index) {
+                    var e = '<a οnclick="edit1(\'' + row.id + '\')">编辑</a> ';  //row.id为每行的id
+                    var d = '<a href="#" mce_href="#" οnclick="del(\'' + row.id + '\')">删除</a> ';
+                    return e + d;
+                }
             }
-        }
         ],
         onDblClickRow: function (row, $element, field) {
             // ...
@@ -292,9 +281,17 @@
             $.getJSON($SCRIPT_ROOT + '/lijing/search', {
                 id: row.id
             }, function (data) {
-                //window.alert(data.name);
-                document.getElementById("name").value = data.name;
-                document.getElementById("gender").value = data.price;
+                var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+                    "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+                    "skill_title", "time_skill", "skill_unit", "skill_number",
+                    "time_school", "work_kind", "job_post", "time_retire"]
+                for (i = 0; i < item.length; i++) {
+                    document.getElementById(item[i]).value = data[item[i]];
+                }
+                //document.getElementById("name").value = data["name"];
+                //document.getElementById("gender").value = data.gender;
+                //document.getElementById("id_number").value = data.id_number;
+
             });
             $("#myModal input").attr("readOnly", true);
             $('#myModal').modal('show');
@@ -308,10 +305,14 @@
     function add_person() {
         $('#myModal').modal('show');
         $("#myModal input").attr("readOnly", false);
-    }
+    };
 
     function import_data() {
         $('#importModal').modal('show');
-    }
+    };
+
+    function showFilename(file) {
+        $("#filename_label").html(file.name);
+    };
 </script>
 {% endblock %}

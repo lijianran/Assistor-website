@@ -15,8 +15,8 @@ CREATE TABLE person(
     id_number TEXT NOT NULL,
     phone TEXT NOT NULL,
     political_status TEXT NOT NULL,
-    time_Party DATE NOT NULL,
-    time_work DATE NOT NULL,
+    time_Party TEXT NOT NULL,
+    time_work TEXT NOT NULL,
     address TEXT NOT NULL,
     resume TEXT NOT NULL
 );
@@ -24,11 +24,11 @@ CREATE TABLE person(
 CREATE TABLE education(
     education_id INTEGER PRIMARY KEY AUTOINCREMENT,
     edu_start TEXT NOT NULL,
-    time_edu_start DATE NOT NULL,
+    time_edu_start TEXT NOT NULL,
     school_edu_start TEXT NOT NULL,
     major_edu_start TEXT NOT NULL,
     edu_end TEXT NOT NULL,
-    time_edu_end DATE NOT NULL,
+    time_edu_end TEXT NOT NULL,
     school_edu_end TEXT NOT NULL,
     major_edu_end TEXT NOT NULL,
     person_id INTEGER NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE education(
 CREATE TABLE skill(
     skill_id INTEGER PRIMARY KEY AUTOINCREMENT,
     skill_title TEXT NOT NULL,
-    time_skill DATE NOT NULL,
+    time_skill TEXT NOT NULL,
     skill_unit TEXT NOT NULL,
     skill_number TEXT NOT NULL,
     person_id INTEGER NOT NULL,
@@ -47,10 +47,10 @@ CREATE TABLE skill(
 
 CREATE TABLE workinfo(
     workinfo_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    time_school DATE NOT NULL,
+    time_school TEXT NOT NULL,
     work_kind TEXT NOT NULL,
     job_post TEXT NOT NULL,
-    time_retire DATE NOT NULL,
+    time_retire TEXT NOT NULL,
     person_id INTEGER NOT NULL,
     FOREIGN KEY(person_id) REFERENCES person(person_id)
 );

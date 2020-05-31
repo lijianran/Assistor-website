@@ -9,6 +9,8 @@ from flaskr.db import get_db, get_lijing_db
 
 from random import choice
 import os
+import xlrd
+from pypinyin import lazy_pinyin
 
 bp = Blueprint('lijing', __name__, url_prefix='/lijing')
 
@@ -34,10 +36,10 @@ def jsondata():
         d = {}
         d['id'] = row['person_id']
         d['name'] = row['person_name']
-        d['price'] = row['gender']
+        d['gender'] = row['gender']
         data.append(d)
 
-    print(data)
+    # print(data)
 
     if request.method == 'POST':
         print('post')
@@ -45,8 +47,8 @@ def jsondata():
         info = request.values
         limit = info.get('limit', 10)  # 每页显示的条数
         offset = info.get('offset', 0)  # 分片数，(页码-1)*limit，它表示一段数据的起点
-        print('get', limit)
-        print('get  offset', offset)
+        # print('get', limit)
+        # print('get  offset', offset)
         return jsonify({'total': len(data), 'rows': data[int(offset):(int(offset) + int(limit))]})
         # 注意total与rows是必须的两个参数，名字不能写错，total是数据的总长度，rows是每页要显示的数据,它是一个列表
         # 前端根本不需要指定total和rows这俩参数，他们已经封装在了bootstrap table里了
@@ -58,14 +60,48 @@ def search():
     db = get_lijing_db()
 
     data = {}
-    result = db.execute(
+    result = db.execute('select person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume,\
+        edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,\
+        skill_title,time_skill,skill_unit,skill_number,\
+        time_school,work_kind,job_post,time_retire \
+        from person join education, skill, workinfo \
+        on person.person_id = education.person_id and person.person_id = skill.person_id and person.person_id = workinfo.person_id \
+        where person.person_id = ?', (person_id,)).fetchall()
+    print(len(result[0]))
+    result_person = db.execute(
         'select * from person where person_id = ?', (person_id,)).fetchall()
-    for row in result:
-        data['id'] = row['person_id']
-        data['name'] = row['person_name']
-        data['price'] = row['gender']
+    result_education = db.execute(
+        'select * from education where person_id = ?', (person_id,)).fetchall()
+    result_skill = db.execute(
+        'select * from skill where person_id = ?', (person_id,)).fetchall()
+    result_workinfo = db.execute(
+        'select * from workinfo where person_id = ?', (person_id,)).fetchall()
 
-    print(data)
+    db.commit()
+    item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"]
+
+    num = 0
+    print(result_person[0][item[0]])
+    print(len(result_person[0]))
+    for i in range(9):
+        data[item[num]] = result_person[0][item[num]]
+        num = num+1
+
+    for i in range(8):
+        data[item[num]] = result_education[0][item[num]]
+        num = num+1
+
+    for i in range(4):
+        data[item[num]] = result_skill[0][item[num]]
+        num = num+1
+
+    for i in range(4):
+        data[item[num]] = result_workinfo[0][item[num]]
+        num = num+1
+
     return data
 
 
@@ -73,7 +109,69 @@ def search():
 def importData():
     if request.method == 'POST':
         f = request.files['file']
-        print(secure_filename(f.filename))
-        # flash(f)
-    return redirect(url_for('lijing.basicInfo'))
+        filename = secure_filename(''.join(lazy_pinyin(f.filename)))
 
+        if filename.endswith('.xlsx'):
+            basepath = os.path.dirname(__file__)
+            upload_path = os.path.join(basepath, 'static\\uploads', filename)
+            f.save(upload_path)
+
+            data = xlrd.open_workbook(upload_path)
+            table = data.sheet_by_index(0)
+            print("总行数：" + str(table.nrows))
+            print("总列数：" + str(table.ncols))
+
+            dict_title = {
+                '姓名': 0, '性别': 1, '身份证号': 2, '联系电话': 3, '政治面貌': 4, '入党时间': 5, '参加工作时间': 6, '家庭住址': 7, '工作简历': 8,
+                '第一学历': 9, '第一学历毕业时间': 10, '第一学历毕业学校': 11, '第一学历专业': 12, '最高学历': 13, '最高学历毕业时间': 14, '最高学历毕业学校': 15, '最高学历专业': 16,
+                '专业技术职称': 17, '取得时间': 18, '发证单位': 19, '发证文件批号': 20,
+                '调入大集中学时间': 21, '用工性质': 22, '工作岗位': 23, '退休时间': 24
+            }
+            rowVale = table.row_values(0)
+            title_id = [0 for i in range(25)]
+            for i in range(0, len(rowVale)):
+                title_name = rowVale[i]
+                if title_name in dict_title:
+                    title_id[dict_title[title_name]] = i
+            print(title_id)
+
+            db = get_lijing_db()
+            for i in range(1, table.nrows):
+                row_value = table.row_values(i)
+                insert_data = [0 for i in range(25)]
+                for j in range(0, len(title_id)):
+                    insert_data[j] = row_value[title_id[j]]
+                    if type(insert_data) != 'str':
+                        insert_data[j] = str(insert_data[j])
+                    if len(insert_data[j]) == 0:
+                        insert_data[j] = '暂无'
+
+                sql_person = 'insert into person (person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume) values (?,?,?,?,?,?,?,?,?)'
+                db.execute(sql_person,
+                           (insert_data[0], insert_data[1], insert_data[2], insert_data[3], insert_data[4],
+                            insert_data[5], insert_data[6], insert_data[7], insert_data[8]))
+                person_id = db.execute(
+                    'select person_id from person where id_number=?', (insert_data[2],)).fetchone()
+
+                sql_education = 'insert into education (edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,person_id) values (?,?,?,?,?,?,?,?,?)'
+                db.execute(sql_education,
+                           (insert_data[9], insert_data[10], insert_data[11], insert_data[12], insert_data[13],
+                            insert_data[14], insert_data[15], insert_data[16], person_id[0]))
+
+                sql_skill = 'insert into skill (skill_title,time_skill,skill_unit,skill_number,person_id) values (?,?,?,?,?)'
+                db.execute(sql_skill,
+                           (insert_data[17], insert_data[18], insert_data[19], insert_data[20], person_id[0]))
+
+                sql_workinfo = 'insert into workinfo (time_school,work_kind,job_post,time_retire,person_id) values (?,?,?,?,?)'
+                db.execute(sql_workinfo,
+                           (insert_data[21], insert_data[22],
+                            insert_data[23], insert_data[24], person_id[0]))
+                db.commit()
+
+            os.remove(upload_path)
+
+            return redirect(url_for('lijing.basicInfo'))
+        else:
+            error = '请导入xlsx格式的文件'
+            flash(error)
+            return redirect(url_for('lijing.basicInfo'))

@@ -1,17 +1,10 @@
 {% extends 'base.html' %}
 
-
-
-{% block header %}
 <h1>{% block title %}lijing{% endblock %}</h1>
 
-<script type=text/javascript>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
-
-{% endblock %}
 
 {% block tools %}
+
 <div class="list-group">
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
         data-target="#demo">教师管理</a>
@@ -23,7 +16,6 @@
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
 </div>
-
 {% endblock %}
 
 {% block content %}
@@ -31,12 +23,54 @@
     <h1>教师基本信息</h1>
 </div>
 
+<div class="row" id="search-bar">
+    <div class="input-group mb-3 col-md-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">年份</label>
+        </div>
+        <select class="custom-select" id="inputGroupSelect01">
+            <option selected>2020</option>
+            <option value="1">2021</option>
+            <option value="2">2022</option>
+            <option value="3">2023</option>
+        </select>
+    </div>
+    <div class="input-group mb-3 col-md-9">
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_select">
+            </select>
+
+        </div>
+        <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="search_person()">搜索</button>
+        </div>
+    </div>
+</div>
+
+
 <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
+    <!--     
     <div class="btn-group mr-2" role="group" aria-label="First group">
         <button type="button" class="btn btn-secondary" onclick="add_data()">添加</button>
     </div>
     <div class="btn-group mr-2" role="group" aria-label="Second group">
         <button type="button" class="btn btn-secondary" onclick="import_data()">导入</button>
+    </div> -->
+
+    <div class="dropdown mr-2">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            功能
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="javascript:void(0)" onclick="add_data()">添加</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
+            <a class="dropdown-item" href="javascript:void(0)">导出</a>
+        </div>
+    </div>
+    <div class="mr-2">
+        <button id="origin_button" type="button" class="btn btn-secondary" onclick="origin_table()" style="display: none;">查看原表</button>
     </div>
 </div>
 
@@ -181,8 +215,11 @@
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
+
                 <button type="button" id="add_person" class="btn btn-primary" style="display: none;"
                     onclick="add_person()">添加</button>
+                <button type="button" id="update_person" class="btn btn-primary" style="display: none;"
+                    onclick="update_person()">修改</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
@@ -202,7 +239,19 @@
 
             <!-- 模态框主体 -->
             <div class="modal-body">
-                <form action="{{ url_for('lijing.importData')}}" enctype='multipart/form-Data' method='POST'>
+
+                <form action="{{ url_for('lijing.importData') }}" enctype='multipart/form-Data' method='POST'>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">年份</label>
+                        </div>
+                        <select class="custom-select" id="inputGroupSelect01" name="year_select">
+                            <option selected>2020</option>
+                            <option value="1">2021</option>
+                            <option value="2">2022</option>
+                            <option value="3">2023</option>
+                        </select>
+                    </div>
                     <div class="input-group">
                         <div class="custom-file">
                             <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input"
@@ -214,7 +263,6 @@
                         </div>
                     </div>
                 </form>
-
             </div>
 
             <!-- 模态框底部 -->
@@ -228,65 +276,45 @@
 
 {% endblock %}
 
+
 {% block files %}
+<script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
 
 <script>
+    var person_id = 0;
 
-    $('#table').bootstrapTable({
-        url: '/lijing/jsondata',  // 请求数据源的路由
-        method: 'get',
-        dataType: "json",
-        theadClasses: "thead-light",//标题样式
-        pagination: true, //前端处理分页
-        singleSelect: false,//是否只能单选
-        search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
-        toolbar: '#toolbar', //工具按钮用哪个容器
-        cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
-        pageNumber: 1, //初始化加载第10页，默认第一页
-        pageSize: 10, //每页的记录行数（*）
-        pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
-        smartDisplay: false,
-        strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
-        showColumns: true, //显示内容列下拉框
-        showRefresh: true, //显示刷新按钮
-        minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
-        clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
-        uniqueId: "id", //每一行的唯一标识，一般为主键列
-        showToggle: true, //是否显示详细视图和列表视图的切换按钮
-        cardView: false, //是否显示详细视图
-        detailView: false,                   //是否显示父子表
-        sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
-        columns: [
-            //{
-            //    checkbox: false  //第一列显示复选框
-            //},
-            {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
-                field: 'id',
-                title: '序号',
-                align: 'center',  //对齐方式，居中 
-            }, {
-                field: 'name',
-                title: '姓名',
-                align: 'center'
-            }, {
-                field: 'gender',
-                title: '性别',
-                align: 'center',
+    function init() {
+        var select_search = document.getElementById("search_select");
+        var item = {
+            "姓名": "person_name", "性别": "gender", "身份证号": "id_number", "联系电话": "phone", "政治面貌": "political_status", "入党时间": "time_Party", "参加工作时间": "time_work", "家庭住址": "address", "个人简历": "resume",
+            "第一学历": "edu_start", "第一学历毕业时间": "time_edu_start", "第一学历毕业学校": "school_edu_start", "第一学历专业": "major_edu_start", "最高学历": "edu_end", "最高学历毕业时间": "time_edu_end", "最高学历毕业学校": "school_edu_end", "最高学历专业": "major_edu_end",
+            "专业技术职称": "skill_title", "职称取得时间": "time_skill", "职称发证单位": "skill_unit", "发证文件批号": "skill_number",
+            "调入大集中学时间": "time_school", "用工性质": "work_kind", "工作岗位": "job_post", "退休时间": "time_retire"
+        };
 
-            }, {
-                title: '操作',
-                field: 'id',
-                align: 'center',
-                formatter: function (value, row, index) {
-                    var e = '<a href="#" οnclick="edit1(\'' + row.id + '\')">编辑</a> ';  //row.id为每行的id
-                    var d = '<a href="#" mce_href="#" οnclick="del(\'' + row.id + '\')">删除</a> ';
-                    return e + d;
-                }
-            }
-        ],
-        onDblClickRow: function (row, $element, field) {
-            // ...
-            //window.alert(row['name']);
+        for (var i in item)
+            select_search.options.add(new Option(i, item[i]));
+
+
+    }
+    init();
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a class="detail" href="javascript:void(0)" title="Detail">',
+            '<i class="fa fa-bars"></i>',
+            '</a>  ',
+            '<a class="update" href="javascript:void(0)" title="Update">',
+            '<i class="fa fa-edit"></i>',
+            '</a>  ',
+            '<a class="remove" href="javascript:void(0)" title="Remove">',
+            '<i class="fa fa-trash"></i>',
+            '</a>'
+        ].join('')
+    }
+
+    window.operateEvents = {
+        'click .detail': function (e, value, row, index) {
             document.getElementById("modal-title").innerHTML = row.name + "--基本信息";
 
             $.getJSON($SCRIPT_ROOT + '/lijing/search', {
@@ -303,13 +331,107 @@
 
             });
             $("#myModal input").attr("readOnly", true);
+            $("#resume").attr("readOnly", true);
+            document.getElementById("add_person").style.display = "none";
+            document.getElementById("update_person").style.display = "none";
             $('#myModal').modal('show');
-        },
-    });
 
-    function edit1(id) {
-        window.alert(id);
-    };
+        },
+        'click .update': function (e, value, row, index) {
+            person_id = row.id;
+
+            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
+                id: row.id
+            }, function (data) {
+                var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+                    "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+                    "skill_title", "time_skill", "skill_unit", "skill_number",
+                    "time_school", "work_kind", "job_post", "time_retire"];
+                for (i = 0; i < item.length; i++) {
+                    document.getElementById(item[i]).value = data[item[i]];
+                }
+            });
+
+            document.getElementById("update_person").style.display = "block";
+            document.getElementById("add_person").style.display = "none";
+            document.getElementById("modal-title").innerHTML = '修改教师"' + row.name + '"的基本信息';
+            $("#myModal input").attr("readOnly", false);
+            $("#resume").attr("readOnly", false);
+            $("#myModal").modal("show");
+
+            //window.alert('You click like action, row: ' + JSON.stringify(row))
+        },
+        'click .remove': function (e, value, row, index) {
+            window.alert("hello");
+            //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
+        }
+    }
+
+    function init_table() {
+        $('#table').bootstrapTable({
+            url: '/lijing/jsondata',  // 请求数据源的路由
+            method: 'get',
+            dataType: "json",
+            theadClasses: "thead-light",//标题样式
+            pagination: true, //前端处理分页
+            singleSelect: false,//是否只能单选
+            search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,
+            pageNumber: 1, //初始化加载第10页，默认第一页
+            pageSize: 10, //每页的记录行数（*）
+            pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+            smartDisplay: false,
+            strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+            showColumns: true, //显示内容列下拉框
+            showRefresh: true, //显示刷新按钮
+            minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+            clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+            uniqueId: "id", //每一行的唯一标识，一般为主键列
+            showToggle: true, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false,                   //是否显示父子表
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            columns: [
+                //{
+                //    checkbox: false  //第一列显示复选框
+                //},
+                {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+                    field: 'id',
+                    title: '编号',
+                    align: 'center',  //对齐方式，居中 
+                }, {
+                    field: 'name',
+                    title: '姓名',
+                    align: 'center'
+                }, {
+                    field: 'gender',
+                    title: '性别',
+                    align: 'center',
+
+                }, {
+                    field: 'operations',
+                    title: '操作',
+                    align: 'center',
+                    clickToSelect: false,
+                    events: window.operateEvents,
+                    formatter: operateFormatter
+                }
+            ],
+            //onDblClickRow: function (row, $element, field) {},
+        });
+
+    }
+    init_table();
+
+    function origin_table(){
+        $('#table').bootstrapTable("destroy");
+        init_table();
+        document.getElementById("search_string").value = "";
+        document.getElementById("success_info").style.display = "none";
+        document.getElementById("origin_button").style.display = "none";
+    }
 
     function add_data() {
         var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
@@ -321,6 +443,7 @@
         }
 
         document.getElementById("add_person").style.display = "block";
+        document.getElementById("update_person").style.display = "none";
         document.getElementById("modal-title").innerHTML = "新增教师基本信息";
         $("#myModal input").attr("readOnly", false);
         $("#resume").attr("readOnly", false);
@@ -360,6 +483,100 @@
         });
 
     };
+
+    function update_person() {
+        var datas = {};
+        var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"];
+
+        datas["person_id"] = person_id;
+        for (i = 0; i < item.length; i++) {
+            datas[item[i]] = document.getElementById(item[i]).value;
+        }
+
+        $.getJSON($SCRIPT_ROOT + '/lijing/update_person', datas, function (return_data) {
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            $("#myModal").modal("hide");
+            $("#table").bootstrapTable('refresh');
+        });
+    };
+
+    function search_person() {
+        var index = document.getElementById("search_select").selectedIndex;
+        var val = document.getElementById("search_select").options[index].value;
+
+        var search_string = document.getElementById("search_string").value;
+
+        datas = {};
+        datas["search_item"] = val;
+        datas["search_string"] = search_string;
+
+        $.getJSON($SCRIPT_ROOT + '/lijing/search_person', datas, function (return_data) {
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+
+            document.getElementById("origin_button").style.display = "block";
+            $("#table").bootstrapTable("destroy");
+            $('#table').bootstrapTable({
+                //url: '/lijing/jsondata',  // 请求数据源的路由
+                data: return_data.rows,
+                //method: 'get',
+                dataType: "json",
+                theadClasses: "thead-dark",//标题样式
+                pagination: true, //前端处理分页
+                singleSelect: false,//是否只能单选
+                search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                toolbar: '#toolbar', //工具按钮用哪个容器
+                cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: false,
+                pageNumber: 1, //初始化加载第10页，默认第一页
+                pageSize: 10, //每页的记录行数（*）
+                pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+                smartDisplay: false,
+                strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+                showColumns: true, //显示内容列下拉框
+                showRefresh: true, //显示刷新按钮
+                minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+                clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+                uniqueId: "id", //每一行的唯一标识，一般为主键列
+                showToggle: true, //是否显示详细视图和列表视图的切换按钮
+                cardView: false, //是否显示详细视图
+                detailView: false,                   //是否显示父子表
+                sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+                columns: [
+                    //{
+                    //    checkbox: false  //第一列显示复选框
+                    //},
+                    {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+                        field: 'id',
+                        title: '编号',
+                        align: 'center',  //对齐方式，居中 
+                    }, {
+                        field: 'name',
+                        title: '姓名',
+                        align: 'center'
+                    }, {
+                        field: 'gender',
+                        title: '性别',
+                        align: 'center',
+
+                    }, {
+                        field: 'operations',
+                        title: '操作',
+                        align: 'center',
+                        clickToSelect: false,
+                        events: window.operateEvents,
+                        formatter: operateFormatter
+                    }
+                ],
+                //onDblClickRow: function (row, $element, field) {},
+            });
+
+        });
+    }
 
     function import_data() {
         $('#importModal').modal('show');

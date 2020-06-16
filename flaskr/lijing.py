@@ -85,6 +85,8 @@ def search():
 @bp.route('/importData', methods=('GET', 'POST'))
 def importData():
     if request.method == 'POST':
+        year_select = request.form.get('year_select')
+        print(year_select)
         f = request.files['file']
         filename = secure_filename(''.join(lazy_pinyin(f.filename)))
 
@@ -192,7 +194,79 @@ def add_person():
                 insert_data[23], insert_data[24], person_id[0]))
     db.commit()
 
-    msg = '成功添加教师'+ insert_data[0] +'的信息'
+    msg = '成功添加教师' + insert_data[0] + '的信息'
 
-    # return render_template('lijing/basicInfo.html', msgs=msg)
+    # return redirect(url_for('lijing.basicInfo'))
+    # return render_template('lijing/basicInfo.html')
     return {'msg': msg}
+
+
+@bp.route('/update_person', methods=('GET', 'POST'))
+def update_person():
+    update_data = [0 for i in range(25)]
+    item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"]
+
+    for i in range(0, len(item)):
+        update_data[i] = request.args.get(item[i], '暂无', type=str)
+        if update_data[i] == '':
+            update_data[i] = '暂无'
+
+    person_id = request.args.get("person_id", '暂无', type=str)
+    print(update_data)
+    print(person_id)
+
+    db = get_lijing_db()
+    sql_person = 'update person set person_name = ?,gender = ?,id_number = ?,phone = ?,political_status = ?,\
+        time_Party = ?,time_work = ?,address = ?,resume = ? where person_id = ?'
+    db.execute(sql_person,
+               (update_data[0], update_data[1], update_data[2], update_data[3], update_data[4],
+                update_data[5], update_data[6], update_data[7], update_data[8], person_id))
+
+    sql_education = 'update education set edu_start = ?,time_edu_start = ?,school_edu_start = ?,major_edu_start = ?\
+        ,edu_end = ?,time_edu_end = ?,school_edu_end = ?,major_edu_end = ? where person_id = ?'
+    db.execute(sql_education,
+               (update_data[9], update_data[10], update_data[11], update_data[12], update_data[13],
+                update_data[14], update_data[15], update_data[16], person_id))
+
+    sql_skill = 'update skill set skill_title = ?,time_skill = ?,skill_unit = ?,skill_number = ? where person_id = ?'
+    db.execute(sql_skill,
+               (update_data[17], update_data[18], update_data[19], update_data[20], person_id))
+
+    sql_workinfo = 'update workinfo set time_school = ?,work_kind = ?,job_post = ?,time_retire = ? where person_id = ?'
+    db.execute(sql_workinfo,
+               (update_data[21], update_data[22],
+                update_data[23], update_data[24], person_id))
+    db.commit()
+    msg = '成功修改教师“' + update_data[0] + '”的信息'
+
+    return {'msg': msg}
+
+
+@bp.route('/search_person', methods=('GET', 'POST'))
+def seach_person():
+    search_item = request.args.get('search_item', '暂无', type=str)
+    search_string = request.args.get('search_string', '暂无', type=str)
+
+    db = get_lijing_db()
+    sql = 'select person.person_id, person.person_name, person.gender from person join education, skill, workinfo \
+        on person.person_id = education.person_id and person.person_id = skill.person_id and person.person_id = workinfo.person_id \
+             where ' + search_item + ' like "%' + search_string + '%"'
+    result = db.execute(sql).fetchall()
+    db.commit()
+
+    data = []
+    for row in result:
+        d = {}
+        d['id'] = row['person_id']
+        d['name'] = row['person_name']
+        d['gender'] = row['gender']
+        data.append(d)
+
+    msg = '成功查询到'+str(len(result))+'条信息'
+    limit = 10
+    offset = 0
+    return jsonify({'msg': msg, 'total': len(data), 'rows': data})
+    # return {'msg': msg, 'data': data}

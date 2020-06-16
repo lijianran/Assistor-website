@@ -16,6 +16,7 @@ def index():
         ' FROM post p JOIN users u ON p.author_id = u.users_id'
         ' ORDER BY created DESC'
     ).fetchall()
+    
     return render_template('blog/index.html', posts=posts)
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -46,7 +47,7 @@ def create():
 def get_post(id, check_author=True):
     post = get_db().execute(
         'SELECT p.id, title, body, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.users_id'
+        ' FROM post p JOIN users u ON p.author_id = u.users_id'
         ' WHERE p.id = ?',
         (id,)
     ).fetchone()

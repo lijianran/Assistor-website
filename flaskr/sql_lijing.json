@@ -1,0 +1,7 @@
+{
+    "person":"(person_id INTEGER PRIMARY KEY AUTOINCREMENT,person_name TEXT NOT NULL,gender TEXT NOT NULL,id_number TEXT NOT NULL,phone TEXT NOT NULL,political_status TEXT NOT NULL,time_Party TEXT NOT NULL,time_work TEXT NOT NULL,address TEXT NOT NULL,resume TEXT NOT NULL);",
+    "education":"(education_id INTEGER PRIMARY KEY AUTOINCREMENT,edu_start TEXT NOT NULL,time_edu_start TEXT NOT NULL,school_edu_start TEXT NOT NULL,major_edu_start TEXT NOT NULL,edu_end TEXT NOT NULL,time_edu_end TEXT NOT NULL,school_edu_end TEXT NOT NULL,major_edu_end TEXT NOT NULL,person_id INTEGER NOT NULL,FOREIGN KEY(person_id) REFERENCES person(person_id));",
+    "skill":"(skill_id INTEGER PRIMARY KEY AUTOINCREMENT,skill_title TEXT NOT NULL,time_skill TEXT NOT NULL,skill_unit TEXT NOT NULL,skill_number TEXT NOT NULL,person_id INTEGER NOT NULL,FOREIGN KEY(person_id) REFERENCES person(person_id));",
+    "workinfo":"(workinfo_id INTEGER PRIMARY KEY AUTOINCREMENT,time_school TEXT NOT NULL,work_kind TEXT NOT NULL,job_post TEXT NOT NULL,time_retire TEXT NOT NULL,person_id INTEGER NOT NULL,FOREIGN KEY(person_id) REFERENCES person(person_id));"
+
+}

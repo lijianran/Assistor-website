@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, session
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, session, send_file, send_from_directory
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -10,12 +10,19 @@ from flaskr.db import get_db, get_lijing_db
 from random import choice
 import os
 import xlrd
-import xlwt
+import xlsxwriter
 import json
 import datetime
 from pypinyin import lazy_pinyin
 
 bp = Blueprint('lijing', __name__, url_prefix='/lijing')
+
+item_name_dict = {
+    'person_name': '姓名', "gender": '性别', "id_number": '身份证号', "phone": '联系电话', "political_status": '政治面貌', "time_Party": '入党时间', "time_work": '参加工作时间', "address": '家庭住址', "resume": '个人简历',
+    "edu_start": '第一学历', "time_edu_start": '第一学历毕业时间', "school_edu_start": '第一学历毕业学校', "major_edu_start": '第一学历专业', "edu_end": '最高学历', "time_edu_end": '最高学历毕业时间', "school_edu_end": '最高学历毕业学校', "major_edu_end": '最高学历专业',
+    "skill_title": '专业技术职称', "time_skill": '职称取得时间', "skill_unit": '职称发证单位', "skill_number": '发证文件批号',
+    "time_school": '调入大集中学时间', "work_kind": '用工性质', "job_post": '工作岗位', "time_retire": '退休时间'
+}
 
 
 @bp.route('/hello')
@@ -221,7 +228,7 @@ def importData():
             return redirect(url_for('lijing.basicInfo'))
 
 
-@bp.route('/exportData', methods=('GET', 'POST'))
+@bp.route('/exportData3244', methods=('GET', 'POST'))
 def exportData():
     export_data = [0 for i in range(25)]
     item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
@@ -231,6 +238,8 @@ def exportData():
 
     for i in range(0, len(item)):
         export_data[i] = request.args.get(item[i])
+
+    id_list = request.args.getlist("id_list[]")
 
     export_item = []
     for i in range(0, len(item)):
@@ -248,27 +257,33 @@ def exportData():
     skill = 'skill_'+year
     workinfo = 'workinfo_'+year
     sql_search = sql_search + ' from '+person+' join '+education+', '+skill+', '+workinfo+' on '+person+'.person_id = ' + \
-        education+'.person_id and '+person+'.person_id = '+skill + \
-        '.person_id and '+person+'.person_id = '+workinfo+'.person_id'
+        education+'.person_id and '+person+'.person_id = '+skill + '.person_id and '+person+'.person_id = '+workinfo+'.person_id \
+        where '+person+'.person_id = ?'
 
+    table_data = []
     db = get_lijing_db()
-    result = db.execute(sql_search).fetchall()
+    for id in id_list:
+        result = db.execute(sql_search, (int(id),)).fetchall()
+        row = []
+        for item in export_item:
+            row.append(result[0][item])
+        table_data.append(row)
 
-    for i in result:
-        print(i['person_name'])
+    workbook = xlsxwriter.Workbook(
+        'flaskr\\static\\downloads\\exportData.xlsx')
+    worksheet = workbook.add_worksheet('Sheet1')
+    for i in range(len(export_item)):
+        worksheet.write(0, i, item_name_dict[export_item[i]])
+    for i in range(len(id_list)):
+        for j in range(len(export_item)):
+            worksheet.write(i+1, j, table_data[i][j])
 
+    workbook.close()
+    # print(os.path.join(os.path.dirname(
+    #     __file__), 'static', 'downloads', 'exportData.xlsx'))
+    msg = '成功导出'+str(len(id_list))+'条信息'
 
-
-
-    workbook = xlwt.Workbook(encoding='ascii')
-    worksheet = workbook.add_sheet('My Worksheet')
-
-    # workbook.save('cell_width.xls')
-
-    print(export_data)
-    msg = '成功导出信息'
-
-    return {'msg': msg}
+    return {'msg': msg, 'filename': 'exportData.xlsx'}
 
 
 @bp.route('/add_person', methods=('GET', 'POST'))
@@ -320,6 +335,23 @@ def add_person():
     # return redirect(url_for('lijing.basicInfo'))
     # return render_template('lijing/basicInfo.html')
     return {'msg': msg}
+
+
+@bp.route('/download_excel_file/<string:excel_filename>')
+def download_excel_file(excel_filename):
+    """
+    下载src_file目录下面的文件
+    eg：下载当前目录下面的123.tar 文件，eg:http://localhost:5000/download?fileId=123.tar
+    :return:
+    """
+    # file_name = request.args.get('fileId')
+    file_path = os.path.join(os.path.dirname(
+        __file__), 'static', 'downloads', excel_filename)
+    print(file_path)
+    if os.path.isfile(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        return "The downloaded file does not exist"
 
 
 @bp.route('/update_person', methods=('GET', 'POST'))

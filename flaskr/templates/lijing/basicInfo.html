@@ -10,7 +10,7 @@
         data-target="#demo">教师管理</a>
     <div class="list-group collapse show" id="demo">
         <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action active">1.教师基本信息</a>
-        <a href="#" class="list-group-item list-group-item-action">2.教师业务档案</a>
+        <a href="{{ url_for('lijing_workinfo.hello') }}" class="list-group-item list-group-item-action">2.教师业务档案</a>
         <a href="#" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
     </div>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
@@ -65,7 +65,8 @@
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <a class="dropdown-item" href="javascript:void(0)" onclick="add_data()">添加</a>
             <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="export_data()">导出</a>
+            <a class="dropdown-item disabled" href="javascript:void(0)" onclick="export_data()"
+                id="export_button">导出</a>
         </div>
     </div>
     <div class="mr-2">
@@ -491,6 +492,7 @@
         document.getElementById("search_string").value = "";
         document.getElementById("success_info").style.display = "none";
         document.getElementById("origin_button").style.display = "none";
+        $('#export_button').addClass('disabled');
     }
 
     function add_data() {
@@ -593,6 +595,7 @@
             document.getElementById("success_msg").innerHTML = return_data.msg;
 
             document.getElementById("origin_button").style.display = "block";
+            $('#export_button').removeClass('disabled');
             $("#table").bootstrapTable("destroy");
             $('#table').bootstrapTable({
                 //url: '/lijing/jsondata',  // 请求数据源的路由
@@ -657,15 +660,23 @@
     };
 
     function export_data() {
+
         $('#exportModal').modal('show');
     };
 
     function export_table() {
+        var id_list = []
+        var table_data = $('#table').bootstrapTable('getData');
+
+        for (var i = 0; i < table_data.length; i++) {
+            id_list.push(table_data[i].id);
+        }
+
         var datas = {};
         var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-        "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-        "skill_title", "time_skill", "skill_unit", "skill_number",
-        "time_school", "work_kind", "job_post", "time_retire"];
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"];
 
         for (i = 0; i < item.length; i++) {
             var id = "radio_" + item[i];
@@ -673,17 +684,18 @@
             if (document.getElementById(id).checked == true) {
                 datas[item[i]] = true;
             }
-            else{
+            else {
                 datas[item[i]] = false;
             }
-            
-            //datas[item[i]] = document.getElementById(item[i]).value;
         }
-        
-        $.getJSON($SCRIPT_ROOT + '/lijing/exportData', datas, function (return_data) {
-            window.alert(return_data.msg)
-            //document.getElementById("success_info").style.display = "block";
-            //document.getElementById("success_msg").innerHTML = return_data.msg;
+        datas["id_list"] = id_list;
+
+        $.getJSON($SCRIPT_ROOT + '/lijing/exportData3244', datas, function (return_data) {
+            $("#exportModal").modal("hide");
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            window.alert('/lijing/download_excel_file/' + return_data.filename)
+            window.location.href = '/lijing/download_excel_file/' + return_data.filename;
             //$("#myModal").modal("hide");
             //$("#table").bootstrapTable('refresh');
         });

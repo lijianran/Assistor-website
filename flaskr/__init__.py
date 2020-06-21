@@ -36,7 +36,11 @@ def create_app(test_config=None):
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')
     
-    from .import lijing
-    app.register_blueprint(lijing.bp)
+    # from . import lijing
+    from .lijing import lijing_basicinfo
+    app.register_blueprint(lijing_basicinfo.bp)
+
+    from .lijing import lijing_workinfo
+    app.register_blueprint(lijing_workinfo.bp)
     
     return app

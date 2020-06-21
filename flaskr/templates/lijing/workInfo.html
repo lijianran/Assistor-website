@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+<h1>{% block title %}lijing{% endblock %}</h1>
+
+
+{% block tools %}
+
+<div class="list-group">
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
+        data-target="#demo">教师管理</a>
+    <div class="list-group collapse show" id="demo">
+        <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action">1.教师基本信息</a>
+        <a href="{{ url_for('lijing_workinfo.hello') }}" class="list-group-item list-group-item-action active">2.教师业务档案</a>
+        <a href="#" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
+    </div>
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div class="jumbotron">
+    <h1>教师业务档案</h1>
+</div>
+
+<div class="row" id="search-bar">
+    <div class="input-group mb-3 col-md-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">年份</label>
+        </div>
+        <select class="custom-select" id="select_year">
+            {% for year in year_list %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="input-group mb-3 col-md-9">
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_select">
+            </select>
+
+        </div>
+        <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="search_person()">搜索</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
+    <!--     
+    <div class="btn-group mr-2" role="group" aria-label="First group">
+        <button type="button" class="btn btn-secondary" onclick="add_data()">添加</button>
+    </div>
+    <div class="btn-group mr-2" role="group" aria-label="Second group">
+        <button type="button" class="btn btn-secondary" onclick="import_data()">导入</button>
+    </div> -->
+
+    <div class="dropdown mr-2">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            功能
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="javascript:void(0)" onclick="add_data()">添加</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
+            <a class="dropdown-item disabled" href="javascript:void(0)" onclick="export_data()"
+                id="export_button">导出</a>
+        </div>
+    </div>
+    <div class="mr-2">
+        <button id="origin_button" type="button" class="btn btn-secondary" onclick="origin_table()"
+            style="display: none;">查看原表</button>
+    </div>
+</div>
+
+
+<div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
+    <strong id="success_msg"></strong>
+</div>
+
+
+<table id="table" class="table-striped" data-sortable="true"></table>
+
+
+
+{% endblock %}

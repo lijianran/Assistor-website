@@ -9,10 +9,14 @@ DROP TABLE IF EXISTS school;
 DROP TABLE IF EXISTS job;
 DROP TABLE IF EXISTS class;
 DROP TABLE IF EXISTS rank;
+DROP TABLE IF EXISTS workload;
 
 CREATE TABLE year_list(
     year_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    year TEXT NOT NULL
+    year TEXT NOT NULL,
+    basicinfo INTEGER NOT NULL,
+    workinfo INTEGER NOT NULL
+
 );
 
 CREATE TABLE person(
@@ -65,13 +69,13 @@ CREATE TABLE workinfo(
 
 CREATE TABLE school(
     school_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    school_name text unique NOT NULL
+    school_name TEXT NOT NULL
 );
 
 
 CREATE TABLE job(
     job_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    job_name text unique NOT NULL,
+    job_name TEXT NOT NULL,
     school_id INTEGER NOT NULL,
     person_id INTEGER NOT NULL,
     FOREIGN KEY(school_id) REFERENCES school(school_id),
@@ -80,17 +84,30 @@ CREATE TABLE job(
 
 CREATE TABLE class(
     class_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    class_name text unique NOT NULL,
+    class_name TEXT NOT NULL,
     school_id INTEGER NOT NULL,
-    FOREIGN KEY(school_id) REFERENCES school(school_id)
+    person_id INTEGER NOT NULL,
+    FOREIGN KEY(school_id) REFERENCES school(school_id),
+    FOREIGN KEY(person_id) REFERENCES person(person_id)
 );
 
 CREATE TABLE rank(
     subject TEXT NOT NULL,
     class_id INTEGER NOT NULL,
     person_id INTEGER NOT NULL,
-    rank1 TEXT NOT NULL,
+    rank_up_school TEXT NOT NULL,
+    rank_up_country TEXT NOT NULL,
+    rank_down_school TEXT NOT NULL,
+    rank_down_country TEXT NOT NULL,
     PRIMARY KEY(class_id, subject, person_id),
     FOREIGN KEY(class_id) REFERENCES class(class_id),
     FOREIGN KEY(person_id) REFERENCES person(person_id)
-)
+);
+
+CREATE TABLE workload(
+    workload_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lesson_number TEXT NOT NULL,
+    year_result TEXT NOT NULL,
+    person_id TEXT NOT NULL,
+    FOREIGN KEY(person_id) REFERENCES person(person_id)
+);

@@ -10,7 +10,8 @@
         data-target="#demo">教师管理</a>
     <div class="list-group collapse show" id="demo">
         <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action">1.教师基本信息</a>
-        <a href="{{ url_for('lijing_workinfo.hello') }}" class="list-group-item list-group-item-action active">2.教师业务档案</a>
+        <a href="{{ url_for('lijing_workinfo.hello') }}"
+            class="list-group-item list-group-item-action active">2.教师业务档案</a>
         <a href="#" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
     </div>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
@@ -84,6 +85,200 @@
 
 <table id="table" class="table-striped" data-sortable="true"></table>
 
+<div class="modal fade" id="importModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-import-title">导入数据</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+
+                <form action="{{ url_for('lijing_workinfo.importData') }}" enctype='multipart/form-Data' method='POST'>
+                    <div class="alert alert-primary" role="alert">
+                        请选择要导入的年份和Excel表格(.xlsx)
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">年份</label>
+                        </div>
+                        <select class="custom-select" id="inputGroupSelect01" name="year_select">
+
+                            {% for year in year_list %}
+                            {% if year != "暂无数据" %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endif %}
+                            {% endfor %}
+                            <!-- <option value="{{ year_new }}">{{ year_new }} （新增）</option> -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <div class="custom-file">
+                            <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input"
+                                id="inputGroupFile04" name="file" required>
+                            <label id="filename_label" class="custom-file-label" for="inputGroupFile04">选择文件</label>
+                        </div>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">导入</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button> -->
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
+{% endblock %}
+
+
+{% block files %}
+<script>
+    function operateFormatter(value, row, index) {
+        return [
+            '<a class="detail" href="javascript:void(0)" title="Detail">',
+            '<i class="fa fa-bars"></i>',
+            '</a>  ',
+            '<a class="update" href="javascript:void(0)" title="Update">',
+            '<i class="fa fa-edit"></i>',
+            '</a>  ',
+            '<a class="remove" href="javascript:void(0)" title="Remove">',
+            '<i class="fa fa-trash"></i>',
+            '</a>'
+        ].join('')
+    }
+
+    window.operateEvents = {
+        'click .detail': function (e, value, row, index) {
+            document.getElementById("modal-title").innerHTML = row.name + "--基本信息";
+
+            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
+                id: row.id
+            }, function (data) {
+                var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+                    "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+                    "skill_title", "time_skill", "skill_unit", "skill_number",
+                    "time_school", "work_kind", "job_post", "time_retire"];
+
+                for (i = 0; i < item.length; i++) {
+                    document.getElementById(item[i]).value = data[item[i]];
+                }
+
+            });
+            $("#myModal input").attr("readOnly", true);
+            $("#resume").attr("readOnly", true);
+            document.getElementById("add_person").style.display = "none";
+            document.getElementById("update_person").style.display = "none";
+            $('#myModal').modal('show');
+
+        },
+        'click .update': function (e, value, row, index) {
+            person_id = row.id;
+
+            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
+                id: row.id
+            }, function (data) {
+                var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+                    "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+                    "skill_title", "time_skill", "skill_unit", "skill_number",
+                    "time_school", "work_kind", "job_post", "time_retire"];
+                for (i = 0; i < item.length; i++) {
+                    document.getElementById(item[i]).value = data[item[i]];
+                }
+            });
+
+            document.getElementById("update_person").style.display = "block";
+            document.getElementById("add_person").style.display = "none";
+            document.getElementById("modal-title").innerHTML = '修改教师"' + row.name + '"的基本信息';
+            $("#myModal input").attr("readOnly", false);
+            $("#resume").attr("readOnly", false);
+            $("#myModal").modal("show");
+
+            //window.alert('You click like action, row: ' + JSON.stringify(row))
+        },
+        'click .remove': function (e, value, row, index) {
+            window.alert("hello");
+            //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
+        }
+    }
+
+    function init_table() {
+        //window.alert("hello")
+        $('#table').bootstrapTable({
+            url: '/lijing_workinfo/jsondata',  // 请求数据源的路由
+            method: 'get',
+            dataType: "json",
+            theadClasses: "thead-light",//标题样式
+            pagination: true, //前端处理分页
+            singleSelect: false,//是否只能单选
+            search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,
+            pageNumber: 1, //初始化加载第10页，默认第一页
+            pageSize: 10, //每页的记录行数（*）
+            pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+            smartDisplay: false,
+            strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+            showColumns: true, //显示内容列下拉框
+            showRefresh: true, //显示刷新按钮
+            minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+            clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+            uniqueId: "id", //每一行的唯一标识，一般为主键列
+            showToggle: true, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false,                   //是否显示父子表
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            columns: [
+                //{
+                //    checkbox: false  //第一列显示复选框
+                //},
+                {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+                    field: 'id',
+                    title: '编号',
+                    align: 'center',  //对齐方式，居中 
+                }, {
+                    field: 'name',
+                    title: '姓名',
+                    align: 'center'
+                }, {
+                    field: 'school',
+                    title: '分校',
+                    align: 'center',
+
+                }, {
+                    field: 'operations',
+                    title: '操作',
+                    align: 'center',
+                    clickToSelect: false,
+                    events: window.operateEvents,
+                    formatter: operateFormatter
+                }
+            ],
+            //onDblClickRow: function (row, $element, field) {},
+        });
+
+    }
+    init_table();
+
+    function import_data() {
+        $('#importModal').modal('show');
+    };
+    
+    function showFilename(file) {
+        $("#filename_label").html(file.name);
+    };
+
+
+</script>
 {% endblock %}

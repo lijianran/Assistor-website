@@ -42,8 +42,8 @@ def basicInfo():
         for year in year_data:
             year_list.insert(0, year['year'])
         year_new = int(year_list[0]) + 1
-        if 'year_current' not in session:
-            session['year_current'] = year_list[0]
+        # if 'year_current' not in session:
+        session['year_current'] = year_list[0]
     return render_template('lijing/basicInfo.html', year_list=year_list, year_new=year_new)
 
 
@@ -148,8 +148,8 @@ def importData():
             year_list.insert(0, year['year'])
 
         if year_select not in year_list:
-            db.execute('insert into year_list (year) values (?)',
-                       (year_select,))
+            db.execute('insert into year_list (year, basicinfo, workinfo) values (?,?,?)',
+                       (year_select,0,0,))
             for sql in sql_create:
                 db.execute(sql)
             db.commit()
@@ -159,7 +159,7 @@ def importData():
 
         if filename.endswith('.xlsx'):
             basepath = os.path.dirname(__file__)
-            upload_path = os.path.join(basepath, 'static\\uploads', filename)
+            upload_path = os.path.join(basepath, '..\\static\\uploads', filename)
             f.save(upload_path)
 
             data = xlrd.open_workbook(upload_path)

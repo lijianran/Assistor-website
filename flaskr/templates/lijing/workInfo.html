@@ -51,21 +51,13 @@
 
 
 <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
-    <!--     
-    <div class="btn-group mr-2" role="group" aria-label="First group">
-        <button type="button" class="btn btn-secondary" onclick="add_data()">添加</button>
-    </div>
-    <div class="btn-group mr-2" role="group" aria-label="Second group">
-        <button type="button" class="btn btn-secondary" onclick="import_data()">导入</button>
-    </div> -->
-
     <div class="dropdown mr-2">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             功能
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="javascript:void(0)" onclick="add_data()">添加</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="add_school_class()">分校班级</a>
             <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
             <a class="dropdown-item disabled" href="javascript:void(0)" onclick="export_data()"
                 id="export_button">导出</a>
@@ -97,52 +89,177 @@
 
             <!-- 模态框主体 -->
             <div class="modal-body">
-
-                <form action="{{ url_for('lijing_workinfo.importData') }}" enctype='multipart/form-Data' method='POST'>
-                    <div class="alert alert-primary" role="alert">
-                        请选择要导入的年份和Excel表格(.xlsx)
+                <div class="alert alert-primary" role="alert">
+                    请选择要导入的年份和Excel表格(.xlsx)
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="inputGroupSelect01">年份</label>
                     </div>
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="inputGroupSelect01">年份</label>
-                        </div>
-                        <select class="custom-select" id="inputGroupSelect01" name="year_select">
+                    <select class="custom-select" id="inputGroupSelect01" name="year_select">
 
-                            {% for year in year_list %}
-                            {% if year != "暂无数据" %}
-                            <option value="{{ year }}">{{ year }}</option>
-                            {% endif %}
-                            {% endfor %}
-                            <!-- <option value="{{ year_new }}">{{ year_new }} （新增）</option> -->
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <div class="custom-file">
+                        {% for year in year_list %}
+                        {% if year != "暂无数据" %}
+                        <option value="{{ year }}">{{ year }}</option>
+                        {% endif %}
+                        {% endfor %}
+                        <!-- <option value="{{ year_new }}">{{ year_new }} （新增）</option> -->
+                    </select>
+                </div>
+
+                <div class="input-group mb-3">
+                    <div class="custom-file">
+                        <form enctype='multipart/form-Data' id="readfile_form">
                             <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input"
                                 id="inputGroupFile04" name="file" required>
                             <label id="filename_label" class="custom-file-label" for="inputGroupFile04">选择文件</label>
-                        </div>
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit">导入</button>
-                        </div>
+                        </form>
                     </div>
-                </form>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" onclick="ReadFile()">读取数据</button>
+                    </div>
+                </div>
+
+                <div class="card bg-light mb-3 text-center" id="select_card">
+                    <div class="card-header"></div>
+                    <div class="card-body">
+                        <h5 class="card-title">选择需要导入的数据</h5>
+                        <p class="card-text" id="card_text">表格中包含有序号、姓名等数据列</p>
+                        <div id="title_select_card">
+                            <!-- <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="inputGroupSelect_name">姓名11</label>
+                                </div>
+                                <select class="custom-select" id="inputGroupSelect_name" name="title_select">
+                                </select>
+                            </div> -->
+                        </div>
+                        <div class="row">
+                            <div class="col-md-5"></div>
+                            <button class="btn btn-primary col-md-2" type="submit">导入</button>
+                            <div class="col-md-5"></div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
-                <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button> -->
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="school_classModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-import-title">分校班级</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        新增
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="inputGroup-sizing-default">新分校名称</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                aria-describedby="inputGroup-sizing-default" id="school_string">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="add_school()">添加学校</button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <select class="custom-select" id="school_select">
+                                    {% for school in school_list %}
+                                    <option>{{ school }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="新班级名称"
+                                id="class_string">
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="班主任姓名"
+                                id="class_string">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="add_class()">添加班级</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        现有分校列表
+                    </div>
+                    <div class="card-body" id="school_card">
+                        {% for school in school_list %}
+                        <div class="card mb-3 text-center">
+                            <div class="card-header" data-toggle="collapse"
+                                data-target="{{'#test' ~ loop.index|string }}">
+                                {{ school }}
+                                <span class="badge badge-primary badge-pill">{{ class_list[loop.index-1]|length }}</span>
+                            </div>
+                            <ul class="list-group list-group-flush collapse" id="{{'test' ~ loop.index }}">
+                                {% if class_list[loop.index-1]|length == 0 %}
+                                <li class="list-group-item">暂无班级数据</li>
+                                {% else %}
+                                {% for class in class_list[loop.index-1] %}
+                                <li class="list-group-item">{{ class }}</li>
+                                {% endfor %}
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
+
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-header" data-toggle="collapse" data-target="#test">
+                                三分校
+                            </div>
+                            <ul class="list-group list-group-flush collapse" id="test">
+                                <li class="list-group-item">Cras justo odio</li>
+                                <li class="list-group-item">Dapibus ac facilisis in</li>
+                                <li class="list-group-item">Vestibulum at eros</li>
+                            </ul>
+                        </div>
+                        <!-- <h5 class="card-title">Special title treatment</h5>
+                      <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                      <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 
 {% block files %}
+<script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
+
 <script>
     function operateFormatter(value, row, index) {
         return [
@@ -272,13 +389,125 @@
     init_table();
 
     function import_data() {
+        document.getElementById("select_card").style.display = "none";
         $('#importModal').modal('show');
     };
-    
+
     function showFilename(file) {
         $("#filename_label").html(file.name);
     };
 
+    function ReadFile() {
+        var formData = new FormData($('#readfile_form')[0]);
+
+        $.ajax({
+            url: "/lijing_workinfo/readfile",
+            type: "POST",
+            data: formData,
+            async: true,
+            cashe: false,
+            contentType: false,
+            processData: false,
+            success: function (returndata) {
+
+                if (returndata.msg != '成功') {
+                    document.getElementById("select_card").style.display = "none";
+                    window.alert(returndata.msg);
+                }
+                else {
+
+                    document.getElementById("card_text").innerHTML = '表格共中包含 ' + returndata.table_title.length + ' 列数据'
+                    item = {
+                        '姓名': 'person_name', '分校': 'school', '职务': 'job_name', '班主任': 'person_id',
+                        '总课时数': 'lesson_number', '年度考核': 'year_result', '任教学科': 'subject', '任教班级': 'class_id',
+                        '上学期末排名': 'rank_up_school', '上学期全县排名': 'rank_up_country', '下学期末排名': 'rank_down_school', '下学期全县排名': 'rank_down_country'
+                    }
+
+                    var card = document.getElementById("title_select_card");
+                    card.innerHTML = "";
+                    for (var i in item) {
+                        select_id = 'select_' + item[i];
+                        var d1 = document.createElement("div");
+                        d1.className = "input-group mb-3";
+                        var d2 = document.createElement("div");
+                        d2.className = "input-group-prepend";
+                        var s = document.createElement("select");
+                        s.className = "custom-select";
+                        s.id = select_id;
+                        s.options.add(new Option('待选择', 0));
+                        for (var j = 0; j < returndata.table_title.length; j++) {
+                            s.options.add(new Option(returndata.table_title[j], j + 1));
+                        }
+                        var l = document.createElement("label");
+                        l.className = "input-group-text";
+                        l.setAttribute("for", select_id);
+                        l.innerHTML = i;
+
+                        d2.appendChild(l);
+                        d1.appendChild(d2);
+                        d1.appendChild(s);
+                        card.appendChild(d1);
+                    }
+                    document.getElementById("select_card").style.display = "block";
+                }
+
+            },
+            error: function (returndata) {
+                window.alert("上传失败！")
+
+            }
+        });
+    }
+
+    function add_school_class() {
+
+        $('#school_classModal').modal('show');
+    }
+
+    function add_school() {
+        datas = {}
+        var school_string = document.getElementById("school_string").value;
+        if (school_string == '') {
+            window.alert('请输入分校名称');
+            return;
+        }
+        datas['school'] = school_string;
+        var index = document.getElementById("select_year").selectedIndex;
+        var year = document.getElementById("select_year").options[index].value;
+        datas['year'] = year;
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/add_school', datas, function (return_data) {
+            window.alert(return_data.msg);
+            var card = document.getElementById("school_card");
+            card.innerHTML = ''
+
+            for (var i = 0; i < return_data.school_list.length; i++) {
+                var d1 = document.createElement("div");
+                d1.className = "card mb-3 col-mg-4";
+                //d1.style = "width: 18rem";
+                var d2 = document.createElement("div");
+                d2.className = "card-header";
+                d2.setAttribute("data-toggle", "collapse");
+                d2.setAttribute("data-target", "#test" + i);
+                d2.innerHTML = return_data.school_list[i];
+                var ul = document.createElement("ul");
+                ul.className = "list-group list-group-flush collapse";
+                ul.id = 'test' + i;
+                var li = document.createElement("li");
+                li.className = "list-group-item";
+                li.innerHTML = "暂无班级信息";
+
+                ul.appendChild(li);
+                d1.appendChild(d2);
+                d1.appendChild(ul);
+                card.appendChild(d1);
+            }
+
+
+
+
+
+        });
+    }
 
 </script>
 {% endblock %}

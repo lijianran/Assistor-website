@@ -58,9 +58,9 @@
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <a class="dropdown-item" href="javascript:void(0)" onclick="add_school_class()">分校班级</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入数据</a>
             <a class="dropdown-item disabled" href="javascript:void(0)" onclick="export_data()"
-                id="export_button">导出</a>
+                id="export_button">导出数据</a>
         </div>
     </div>
     <div class="mr-2">
@@ -90,9 +90,9 @@
             <!-- 模态框主体 -->
             <div class="modal-body">
                 <div class="alert alert-primary" role="alert">
-                    请选择要导入的年份和Excel表格(.xlsx)
+                    请选择要导入的Excel表格(.xlsx)
                 </div>
-                <div class="input-group mb-3">
+                <!-- <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <label class="input-group-text" for="inputGroupSelect01">年份</label>
                     </div>
@@ -103,20 +103,20 @@
                         <option value="{{ year }}">{{ year }}</option>
                         {% endif %}
                         {% endfor %}
-                        <!-- <option value="{{ year_new }}">{{ year_new }} （新增）</option> -->
                     </select>
-                </div>
+                </div> -->
 
                 <div class="input-group mb-3">
                     <div class="custom-file">
-                        <form enctype='multipart/form-Data' id="readfile_form">
+                        <form action="{{ url_for('lijing_workinfo.importData') }}" enctype='multipart/form-Data'
+                            method='POST' id="readfile_form">
                             <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input"
-                                id="inputGroupFile04" name="file" required>
-                            <label id="filename_label" class="custom-file-label" for="inputGroupFile04">选择文件</label>
+                                id="input_file" name="file" required>
+                            <label id="filename_label" class="custom-file-label" for="input_file">选择文件</label>
                         </form>
                     </div>
                     <div class="input-group-append">
-                        <button class="btn btn-primary" onclick="ReadFile()">读取数据</button>
+                        <button class="btn btn-primary" id="button_readfile" onclick="read_file()">读取数据</button>
                     </div>
                 </div>
 
@@ -124,7 +124,10 @@
                     <div class="card-header"></div>
                     <div class="card-body">
                         <h5 class="card-title">选择需要导入的数据</h5>
-                        <p class="card-text" id="card_text">表格中包含有序号、姓名等数据列</p>
+                        <p class="card-text" id="card_text">表格中包含有 多 列数据</p>
+                        <div class="alert alert-info" role="alert">
+                            姓名为必须导入的数据列。
+                        </div>
                         <div id="title_select_card">
                             <!-- <div class="input-group mb-3">
                                 <div class="input-group-prepend">
@@ -134,9 +137,12 @@
                                 </select>
                             </div> -->
                         </div>
+
                         <div class="row">
                             <div class="col-md-5"></div>
-                            <button class="btn btn-primary col-md-2" type="submit">导入</button>
+                            <!-- <button class="btn btn-primary col-md-2"
+                                onclick="javascript:document.getElementById('readfile_form').submit()">导入</button> -->
+                            <button class="btn btn-primary col-md-2" onclick="import_data()">导入</button>
                             <div class="col-md-5"></div>
                         </div>
 
@@ -191,10 +197,10 @@
                                 </select>
 
                             </div>
-                            <input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="新班级名称"
-                                id="class_string">
-                            <input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="班主任姓名"
-                                id="class_string">
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
+                                placeholder="新班级名称" id="class_string">
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
+                                placeholder="班主任姓名" id="person_string">
                             <div class="input-group-append">
                                 <button class="btn btn-outline-secondary" type="button"
                                     onclick="add_class()">添加班级</button>
@@ -211,11 +217,12 @@
                         {% for school in school_list %}
                         <div class="card mb-3 text-center">
                             <div class="card-header" data-toggle="collapse"
-                                data-target="{{'#test' ~ loop.index|string }}">
+                                data-target="{{'#class_list_' ~ loop.index|string }}">
                                 {{ school }}
-                                <span class="badge badge-primary badge-pill">{{ class_list[loop.index-1]|length }}</span>
+                                <span
+                                    class="badge badge-primary badge-pill">{{ class_list[loop.index-1]|length }}</span>
                             </div>
-                            <ul class="list-group list-group-flush collapse" id="{{'test' ~ loop.index }}">
+                            <ul class="list-group list-group-flush collapse" id="{{'class_list_' ~ loop.index }}">
                                 {% if class_list[loop.index-1]|length == 0 %}
                                 <li class="list-group-item">暂无班级数据</li>
                                 {% else %}
@@ -225,10 +232,9 @@
                                 {% endif %}
                             </ul>
                         </div>
-                        <option value="{{ year }}">{{ year }}</option>
                         {% endfor %}
 
-                        <div class="card" style="width: 18rem;">
+                        <!-- <div class="card" style="width: 18rem;">
                             <div class="card-header" data-toggle="collapse" data-target="#test">
                                 三分校
                             </div>
@@ -237,7 +243,7 @@
                                 <li class="list-group-item">Dapibus ac facilisis in</li>
                                 <li class="list-group-item">Vestibulum at eros</li>
                             </ul>
-                        </div>
+                        </div> -->
                         <!-- <h5 class="card-title">Special title treatment</h5>
                       <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
                       <a href="#" class="btn btn-primary">Go somewhere</a> -->
@@ -388,7 +394,9 @@
     }
     init_table();
 
-    function import_data() {
+    function show_import_modal() {
+        document.getElementById("input_file").disabled = false;
+        document.getElementById("button_readfile").disabled = false;
         document.getElementById("select_card").style.display = "none";
         $('#importModal').modal('show');
     };
@@ -397,8 +405,9 @@
         $("#filename_label").html(file.name);
     };
 
-    function ReadFile() {
+    function read_file() {
         var formData = new FormData($('#readfile_form')[0]);
+
 
         $.ajax({
             url: "/lijing_workinfo/readfile",
@@ -409,7 +418,6 @@
             contentType: false,
             processData: false,
             success: function (returndata) {
-
                 if (returndata.msg != '成功') {
                     document.getElementById("select_card").style.display = "none";
                     window.alert(returndata.msg);
@@ -418,8 +426,8 @@
 
                     document.getElementById("card_text").innerHTML = '表格共中包含 ' + returndata.table_title.length + ' 列数据'
                     item = {
-                        '姓名': 'person_name', '分校': 'school', '职务': 'job_name', '班主任': 'person_id',
-                        '总课时数': 'lesson_number', '年度考核': 'year_result', '任教学科': 'subject', '任教班级': 'class_id',
+                        '姓名*': 'person_name', '分校': 'school', '职务': 'job_name',
+                        '总课时数': 'lesson_number', '年度考核': 'year_result', '任教班级': 'class_id', '任教学科': 'subject',
                         '上学期末排名': 'rank_up_school', '上学期全县排名': 'rank_up_country', '下学期末排名': 'rank_down_school', '下学期全县排名': 'rank_down_country'
                     }
 
@@ -436,12 +444,27 @@
                         s.id = select_id;
                         s.options.add(new Option('待选择', 0));
                         for (var j = 0; j < returndata.table_title.length; j++) {
-                            s.options.add(new Option(returndata.table_title[j], j + 1));
+                            option_string = '第' + (j + 1) + '列：' + returndata.table_title[j];
+                            s.options.add(new Option(option_string, j + 1));
                         }
                         var l = document.createElement("label");
                         l.className = "input-group-text";
                         l.setAttribute("for", select_id);
                         l.innerHTML = i;
+                        if (i == '上学期末排名') {
+                            var d = document.createElement("div");
+                            d.className = "alert alert-info";
+                            d.setAttribute("role", "alert");
+                            d.innerText = "导入排名时，需要同时有班级和学科。";
+                            card.appendChild(d);
+                        }
+                        if (i == '任教班级') {
+                            var d = document.createElement("div");
+                            d.className = "alert alert-info";
+                            d.setAttribute("role", "alert");
+                            d.innerText = "任教班级和任教学科必须同时导入。";
+                            card.appendChild(d);
+                        }
 
                         d2.appendChild(l);
                         d1.appendChild(d2);
@@ -449,14 +472,81 @@
                         card.appendChild(d1);
                     }
                     document.getElementById("select_card").style.display = "block";
+                    document.getElementById("input_file").disabled = true;
+                    document.getElementById("button_readfile").disabled = true;
                 }
 
             },
             error: function (returndata) {
                 window.alert("上传失败！")
-
             }
         });
+    }
+
+    function import_data() {
+        document.getElementById("input_file").disabled = false;
+        var formData = new FormData($('#readfile_form')[0]);
+
+        var index = document.getElementById("select_year").selectedIndex;
+        var year = document.getElementById("select_year").options[index].value;
+        formData.append("year", year);
+
+        item_select = ['person_name', 'school', 'job_name', 'lesson_number', 'year_result',
+            'class_id', 'subject', 'rank_up_school', 'rank_up_country', 'rank_down_school', 'rank_down_country']
+        item_id_list = []
+        var len = item_select.length;
+        for (var i = 0; i < len; i++) {
+            var select_id = document.getElementById('select_' + item_select[i]).selectedIndex;
+            item_id_list.push(select_id);
+        }
+
+        if (item_id_list[0] == 0) {
+            window.alert('姓名为必须导入的数据列。')
+            return;
+        }
+        if (item_id_list[5] != 0) {
+            if (item_id_list[6] == 0) {
+                window.alert('要导入任教班级，任教学科必须同时导入。')
+                return;
+            }
+        }
+        if (item_id_list[6] != 0) {
+            if (item_id_list[5] == 0) {
+                window.alert('要导入任教学科，任教班级必须同时导入。')
+                return;
+            }
+        }
+        if (item_id_list[7] + item_id_list[8] + item_id_list[9] + item_id_list[10] != 0) {
+            if (item_id_list[5] == 0) {
+                window.alert('要导入排名，任教班级和任教学科必须同时导入。')
+                return;
+            }
+        }
+
+        formData.append("item_id_list", item_id_list);
+        $.ajax({
+            url: "/lijing_workinfo/importData",
+            type: "POST",
+            data: formData,
+            async: true,
+            cashe: false,
+            contentType: false,
+            processData: false,
+            success: function (returndata) {
+                window.alert(returndata.msg)
+            },
+            error: function (returndata) {
+                window.alert("上传失败！")
+            }
+        });
+
+
+        item = {
+            '姓名*': 'person_name', '分校': 'school', '职务': 'job_name',
+            '总课时数': 'lesson_number', '年度考核': 'year_result', '任教班级': 'class_id', '任教学科': 'subject',
+            '上学期末排名': 'rank_up_school', '上学期全县排名': 'rank_up_country', '下学期末排名': 'rank_down_school', '下学期全县排名': 'rank_down_country'
+        }
+
     }
 
     function add_school_class() {
@@ -476,38 +566,150 @@
         var year = document.getElementById("select_year").options[index].value;
         datas['year'] = year;
         $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/add_school', datas, function (return_data) {
-            window.alert(return_data.msg);
+            if (return_data.msg == 'error') {
+                window.alert(return_data.error);
+                document.getElementById("school_string").value = "";
+                return;
+            }
+            else {
+                window.alert(return_data.msg);
+            }
             var card = document.getElementById("school_card");
             card.innerHTML = ''
 
             for (var i = 0; i < return_data.school_list.length; i++) {
                 var d1 = document.createElement("div");
-                d1.className = "card mb-3 col-mg-4";
-                //d1.style = "width: 18rem";
+                d1.className = "card mb-3 text-center";
+
                 var d2 = document.createElement("div");
                 d2.className = "card-header";
                 d2.setAttribute("data-toggle", "collapse");
-                d2.setAttribute("data-target", "#test" + i);
+                d2.setAttribute("data-target", "#class_list_" + i);
                 d2.innerHTML = return_data.school_list[i];
+
+                var sp = document.createElement("span");
+                sp.className = "badge badge-primary badge-pill";
+                sp.innerHTML = return_data.class_list[return_data.school_list[i]].length;
+
                 var ul = document.createElement("ul");
                 ul.className = "list-group list-group-flush collapse";
-                ul.id = 'test' + i;
-                var li = document.createElement("li");
-                li.className = "list-group-item";
-                li.innerHTML = "暂无班级信息";
+                ul.id = 'class_list_' + i;
 
+                if (return_data.class_list[return_data.school_list[i]].length == 0) {
+                    var li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.innerHTML = "暂无班级信息";
+                    ul.appendChild(li);
+                }
+                else {
+                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]].length; j++) {
+                        var li = document.createElement("li");
+                        li.className = "list-group-item";
+                        li.innerHTML = return_data.class_list[return_data.school_list[i]][j];
+                        ul.appendChild(li);
+                    }
+                }
+
+                d2.appendChild(sp);
                 ul.appendChild(li);
                 d1.appendChild(d2);
                 d1.appendChild(ul);
                 card.appendChild(d1);
             }
-
-
-
-
-
         });
     }
+
+    function add_class() {
+
+        var index = document.getElementById("school_select").selectedIndex;
+        var school = document.getElementById("school_select").options[index].value;
+        if (school == '') {
+            window.alert('请先添加分校');
+            return;
+        }
+        var class_string = document.getElementById("class_string").value;
+        if (class_string == '') {
+            window.alert('请输入班级名称');
+            return;
+        }
+        var person_string = document.getElementById("person_string").value;
+        if (person_string == '') {
+            window.alert('请输入班主任名称');
+            return;
+        }
+
+        datas = {}
+        datas['class'] = class_string;
+        datas['person'] = person_string;
+        datas['school'] = school;
+        index = document.getElementById("select_year").selectedIndex;
+        var year = document.getElementById("select_year").options[index].value;
+        datas['year'] = year;
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/add_class', datas, function (return_data) {
+            if (return_data.msg == 'error') {
+                window.alert(return_data.error);
+                document.getElementById("class_string").value = "";
+                document.getElementById("person_string").value = "";
+                return;
+            }
+            else {
+                //window.alert(return_data.msg);
+            }
+
+            var card = document.getElementById("school_card");
+            card.innerHTML = ''
+            for (var i = 0; i < return_data.school_list.length; i++) {
+                var d1 = document.createElement("div");
+                d1.className = "card mb-3 text-center";
+
+                var d2 = document.createElement("div");
+                d2.className = "card-header";
+                d2.setAttribute("data-toggle", "collapse");
+                d2.setAttribute("data-target", "#class_list_" + i);
+                d2.innerHTML = return_data.school_list[i];
+
+                var sp = document.createElement("span");
+                sp.className = "badge badge-primary badge-pill";
+                sp.innerHTML = return_data.class_list[return_data.school_list[i]].length;
+
+                var ul = document.createElement("ul");
+                ul.className = "list-group list-group-flush collapse";
+                ul.id = 'class_list_' + i;
+
+                if (return_data.class_list[return_data.school_list[i]].length == 0) {
+                    var li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.innerHTML = "暂无班级信息";
+                    ul.appendChild(li);
+                }
+                else {
+                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]].length; j++) {
+                        var li = document.createElement("li");
+                        li.className = "list-group-item";
+                        li.innerHTML = return_data.class_list[return_data.school_list[i]][j];
+                        ul.appendChild(li);
+                    }
+                }
+
+                d2.appendChild(sp);
+                d1.appendChild(d2);
+                d1.appendChild(ul);
+                card.appendChild(d1);
+            }
+        });
+    }
+
+    $("#select_year").change(function () {
+        //要触发的事件
+        datas = {};
+        datas['year'] = this.value;
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/set_year', datas, function (return_data) {
+            $("#table").bootstrapTable('refresh');
+        });
+
+    });
+
+
 
 </script>
 {% endblock %}

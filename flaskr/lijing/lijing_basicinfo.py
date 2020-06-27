@@ -49,7 +49,7 @@ def basicInfo():
 
 @bp.route('/set_year')
 def set_year():
-    year = request.args.get('year', '暂无', type=str)
+    year = request.args.get('year')
     session['year_current'] = year
     msg = 'success'
     return {'msg': msg}

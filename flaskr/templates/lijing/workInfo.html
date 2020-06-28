@@ -25,31 +25,6 @@
     <h1>教师业务档案</h1>
 </div>
 
-<div class="row" id="search-bar">
-    <div class="input-group mb-3 col-md-3">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">年份</label>
-        </div>
-        <select class="custom-select" id="select_year">
-            {% for year in year_list %}
-            <option value="{{ year }}">{{ year }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="input-group mb-3 col-md-9">
-        <div class="input-group-prepend">
-            <select class="custom-select" id="search_select">
-            </select>
-
-        </div>
-        <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
-        <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" onclick="search_person()">搜索</button>
-        </div>
-    </div>
-</div>
-
-
 <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
     <div class="dropdown mr-2">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
@@ -63,9 +38,15 @@
                 id="export_button">导出数据</a>
         </div>
     </div>
-    <div class="mr-2">
-        <button id="origin_button" type="button" class="btn btn-secondary" onclick="origin_table()"
-            style="display: none;">查看原表</button>
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="select_year">年份</label>
+        </div>
+        <select class="custom-select" id="select_year">
+            {% for year in year_list %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
     </div>
 </div>
 
@@ -76,6 +57,91 @@
 
 
 <table id="table" class="table-striped" data-sortable="true"></table>
+
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-title">业务档案</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="person_name">姓名*</label>
+                            <input type="text" class="form-control" id="person_name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="school_name">所在分校</label>
+                            <input type="text" class="form-control" id="school_name" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="job_name">行政职务</label>
+                            <input type="text" class="form-control" id="job_name" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="lesson_number">总课时数</label>
+                            <input type="text" class="form-control" id="lesson_number" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="year_result">年度考核</label>
+                            <input type="text" class="form-control" id="year_result" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="class_master">是否班主任</label>
+                            <input type="text" class="form-control" id="class_master" placeholder="" readonly>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="form-row">
+                        <div class="form-group col-md-2">
+                            <label for="class_id">任教班级</label>
+                            <input type="text" class="form-control" id="class_id" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="subject">任教科目</label>
+                            <input type="text" class="form-control" id="subject" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="rank_up_school">上学期全校排名</label>
+                            <input type="text" class="form-control" id="rank_up_school" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="rank_up_country">上学期全县排名</label>
+                            <input type="text" class="form-control" id="rank_up_country" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="rank_down_school">下学期全校排名</label>
+                            <input type="text" class="form-control" id="rank_down_school" placeholder="" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="rank_down_country">下学期全县排名</label>
+                            <input type="number" class="form-control" id="rank_down_country" placeholder="" readonly>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+
+                <button type="button" id="add_person" class="btn btn-primary" style="display: none;"
+                    onclick="add_person()">添加</button>
+                <button type="button" id="update_person" class="btn btn-primary" style="display: none;"
+                    onclick="update_person()">修改</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="importModal">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -219,14 +285,13 @@
                             <div class="card-header" data-toggle="collapse"
                                 data-target="{{'#class_list_' ~ loop.index|string }}">
                                 {{ school }}
-                                <span
-                                    class="badge badge-primary badge-pill">{{ class_list[loop.index-1]|length }}</span>
+                                <span class="badge badge-primary badge-pill">{{ class_list[school] | length }}</span>
                             </div>
                             <ul class="list-group list-group-flush collapse" id="{{'class_list_' ~ loop.index }}">
-                                {% if class_list[loop.index-1]|length == 0 %}
+                                {% if class_list[school] | length == 0 %}
                                 <li class="list-group-item">暂无班级数据</li>
                                 {% else %}
-                                {% for class in class_list[loop.index-1] %}
+                                {% for class in class_list[school] %}
                                 <li class="list-group-item">{{ class }}</li>
                                 {% endfor %}
                                 {% endif %}
@@ -408,7 +473,6 @@
     function read_file() {
         var formData = new FormData($('#readfile_form')[0]);
 
-
         $.ajax({
             url: "/lijing_workinfo/readfile",
             type: "POST",
@@ -505,6 +569,10 @@
             return;
         }
         if (item_id_list[5] != 0) {
+            if (item_id_list[1] == 0) {
+                window.alert('导入任教班级时，分校需要导入。')
+                return;
+            }
             if (item_id_list[6] == 0) {
                 window.alert('要导入任教班级，任教学科必须同时导入。')
                 return;
@@ -533,7 +601,8 @@
             contentType: false,
             processData: false,
             success: function (returndata) {
-                window.alert(returndata.msg)
+                window.alert(returndata.msg);
+                $("#table").bootstrapTable('refresh');
             },
             error: function (returndata) {
                 window.alert("上传失败！")
@@ -555,12 +624,13 @@
     }
 
     function add_school() {
-        datas = {}
+
         var school_string = document.getElementById("school_string").value;
         if (school_string == '') {
             window.alert('请输入分校名称');
             return;
         }
+        datas = {}
         datas['school'] = school_string;
         var index = document.getElementById("select_year").selectedIndex;
         var year = document.getElementById("select_year").options[index].value;
@@ -572,6 +642,7 @@
                 return;
             }
             else {
+                document.getElementById("school_select").options.add(new Option(school_string));
                 window.alert(return_data.msg);
             }
             var card = document.getElementById("school_card");
@@ -622,8 +693,8 @@
     function add_class() {
 
         var index = document.getElementById("school_select").selectedIndex;
-        var school = document.getElementById("school_select").options[index].value;
-        if (school == '') {
+        var school_string = document.getElementById("school_select").options[index].value;
+        if (school_string == '暂无分校') {
             window.alert('请先添加分校');
             return;
         }
@@ -641,7 +712,7 @@
         datas = {}
         datas['class'] = class_string;
         datas['person'] = person_string;
-        datas['school'] = school;
+        datas['school'] = school_string;
         index = document.getElementById("select_year").selectedIndex;
         var year = document.getElementById("select_year").options[index].value;
         datas['year'] = year;
@@ -654,6 +725,8 @@
             }
             else {
                 //window.alert(return_data.msg);
+                document.getElementById("person_string").value = "";
+                document.getElementById("class_string").value = '' + (parseInt(class_string) + 1);
             }
 
             var card = document.getElementById("school_card");

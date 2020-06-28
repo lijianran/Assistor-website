@@ -61,18 +61,20 @@ def jsondata():
     db = get_lijing_db()
 
     data = []
-    a = session['year_current']
-    # print(a)
-    result = db.execute('select person_id, person_name, gender from person_' +
-                        session['year_current']).fetchall()
-    for row in result:
-        d = {}
-        d['id'] = row['person_id']
-        d['name'] = row['person_name']
-        d['gender'] = row['gender']
-        data.append(d)
 
-    # print(data)
+    try:
+        result = db.execute('select person_id, person_name, gender from person_' +
+                            session['year_current']).fetchall()
+        for row in result:
+            d = {}
+            d['id'] = row['person_id']
+            d['name'] = row['person_name']
+            d['gender'] = row['gender']
+            data.append(d)
+    except:
+        return jsonify({'total': len(data), 'rows': data})
+
+
 
     if request.method == 'POST':
         print('post')

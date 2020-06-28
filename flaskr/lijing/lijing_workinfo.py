@@ -27,6 +27,8 @@ def hello():
     year_list = []
     if len(year_data) == 0:
         year_list = ['暂无数据']
+        session['year_current'] = year_list[0]
+        return render_template('lijing/workInfo.html', year_list=year_list, school_list=['暂无分校'], class_list={})
     else:
         for year in year_data:
             year_list.insert(0, year['year'])
@@ -34,7 +36,7 @@ def hello():
     session['year_current'] = year_list[0]
 
     flag_table = db.execute(
-        'select workinfo from year_list where year = ?', (year_list[0],)).fetchone()['workinfo']
+        'select workinfo from year_list where year = ?', (year_list[0], )).fetchone()['workinfo']
     if flag_table == 0:
         sql_data = {}
         with open('flaskr\sql_lijing.json', 'r') as f:
@@ -53,19 +55,11 @@ def hello():
 
         for sql in sql_create:
             db.execute(sql)
-        db.execute(
-            'select year_list set workinfo = 1 where year = ?', (session['year_current'],))
+        db.execute('insert into school_' +
+                   session['year_current']+' (school_name) values (?)', ('暂无分校', ))
+        db.execute('update year_list set workinfo = 1 where year = ?',
+                   (session['year_current'], ))
         db.commit()
-
-    # person_data = db.execute(
-    #     'select person_id from person_'+session['year_current']).fetchall()
-    # person_id_list = []
-    # for i in person_data:
-    #     person_id_list.append(i['person_id'])
-    # for i in person_id_list:
-    #     db.execute(
-    #         'insert into job_'+session['year_current']+' (person_id, job_name) values (?,?)', (i,'无',))
-    # db.commit()
 
     school_list = []
     school_id = []
@@ -83,7 +77,11 @@ def hello():
         for j in class_data:
             clas.append(j['class_name'])
 
-        class_list[i] = clas
+        class_list[str(school_list[i])] = clas
+
+    if len(school_list) != 1:
+        school_list = school_list[1:]
+        del class_list['暂无分校']
 
     return render_template('lijing/workInfo.html', year_list=year_list, school_list=school_list, class_list=class_list)
 
@@ -96,7 +94,7 @@ def jsondata():
     data = []
     year = session['year_current']
     if year == '暂无数据':
-        return jsonify({'total': len(data), 'rows': data[int(offset):(int(offset) + int(limit))]})
+        return jsonify({'total': len(data), 'rows': data})
     person = 'person_'+year
     rank = 'rank_'+year
     clas = 'class_'+year
@@ -116,7 +114,12 @@ def jsondata():
         school_data = db.execute('select school_name from '+job+' join '+school+' on '+job +
                                  '.school_id = '+school+'.school_id where person_id = ?', (i, )).fetchone()
         if school_data is None:
-            school_name_list.append('暂无')
+            # if db.execute('select job_name from job_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
+            #     db.execute('insert into job_'+year_select+' (person_id, job_name) values (?,?)')
+            db.execute(
+                'insert into '+job+' (job_name, school_id, person_id) values (?,?,?)', ('无', 1, i, ))
+            db.commit()
+            school_name_list.append('暂无分校')
         else:
             school_name_list.append(school_data['school_name'])
 
@@ -176,6 +179,10 @@ def add_school():
 
         class_list[str(school_list[i])] = clas
 
+    if len(school_list) != 1:
+        school_list = school_list[1:]
+        del class_list['暂无分校']
+
     return jsonify({'msg': '成功添加' + school_name, 'school_list': school_list, 'class_list': class_list})
 
 
@@ -185,7 +192,7 @@ def add_class():
     school_name = request.args.get('school')
     class_name = request.args.get('class')
     person_name = request.args.get('person')
-    print(year_select, school_name, class_name, person_name)
+    # print(year_select, school_name, class_name, person_name)
 
     db = get_lijing_db()
 
@@ -227,6 +234,10 @@ def add_class():
 
         class_lists[str(school_list[i])] = clas
 
+    if len(school_list) != 1:
+        school_list = school_list[1:]
+        del class_lists['暂无分校']
+
     return jsonify({'msg': '成功添加班级', 'school_list': school_list, 'class_list': class_lists})
 
 
@@ -237,7 +248,6 @@ def readfile():
         table_title = []
 
         f = request.files['file']
-
         filename = secure_filename(''.join(lazy_pinyin(f.filename)))
         print(filename)
 
@@ -264,6 +274,12 @@ def readfile():
     return jsonify({'msg': msg, 'table_title': table_title})
 
 
+def float_int_string(float_num):
+    if type(float_num) == float:
+        float_num = str(int(float_num))
+    return float_num
+
+
 @bp.route('/importData', methods=('GET', 'POST'))
 def importData():
     if request.method == 'POST':
@@ -274,12 +290,10 @@ def importData():
         # print(session['year_current'])
 
         f = request.files['file']
-        filename = secure_filename(''.join(lazy_pinyin(f.filename)))
-
         year_select = request.form.get('year')
-
         item_id_list = request.form.get('item_id_list').split(',')
 
+        filename = secure_filename(''.join(lazy_pinyin(f.filename)))
         basepath = os.path.dirname(__file__)
         upload_path = os.path.join(
             basepath, '..\\static\\uploads', filename)
@@ -294,7 +308,7 @@ def importData():
         update_item = {}
         for i in range(len(item)):
             if item_id_list[i] != '0':
-                update_item[item[i]] = int(item_id_list[i])-1
+                update_item[item[i]] = int(item_id_list[i]) - 1
 
         print(update_item)
 
@@ -311,116 +325,92 @@ def importData():
             person_name = row[update_item['person_name']]
             if person_name not in person_name_list:
                 return jsonify({'msg': '教师姓名：“'+person_name+'” 不存在'})
+                # 表中有不存在基本信息的教师
             person_id = person_id_dict[person_name]
 
             if 'lesson_number' in update_item:
                 lesson_number = row[update_item['lesson_number']]
-                # if db.execute('select job_name from job_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
-                #     db.execute('insert into job_'+year_select+' (person_id, job_name) values (?,?)')
-                db.execute('update workload_' + year_select +
-                           ' set lesson_number = ? where person_id = ?', (lesson_number, person_id, ))
+                if db.execute('select workload_id from workload_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
+                    db.execute('insert into workload_'+year_select +
+                               ' (lesson_number, year_result, person_id) values (?,?,?)', (lesson_number, '', person_id, ))
+                else:
+                    db.execute('update workload_' + year_select +
+                               ' set lesson_number = ? where person_id = ?', (lesson_number, person_id, ))
+
+            if 'year_result' in update_item:
+                year_result = row[update_item['year_result']]
+                if db.execute('select workload_id from workload_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
+                    db.execute('insert into workload_'+year_select +
+                               ' (lesson_number, year_result, person_id) values (?,?,?)', ('', year_result, person_id, ))
+                else:
+                    db.execute('update workload_' + year_select +
+                               ' set year_result = ? where person_id = ?', (year_result, person_id, ))
+
             if 'school_name' in update_item:
                 school_name = row[update_item['school_name']]
+                school_id_data = db.execute(
+                    'select school_id from school_'+year_select+' where school_name = ?', (school_name, )).fetchone()
+                if school_id_data is None:
+                    return jsonify({'msg': '分校：“'+school_name+'” 不存在'})
+                school_id = school_id_data['school_id']
+
+                db.execute('update job_'+year_select +
+                           ' set school_id = ? where person_id = ?', (school_id, person_id, ))
+
+            if 'job_name' in update_item:
+                job_name = row[update_item['job_name']]
+                if job_name == '':
+                    job_name = '无'
+                db.execute('update job_'+year_select +
+                           ' set job_name = ? where person_id = ?', (job_name, person_id, ))
+
+            if 'class_id' in update_item:
+                school_name = row[update_item['school_name']]
+                school_id = db.execute(
+                    'select school_id from school_'+year_select+' where school_name = ?', (school_name, )).fetchone()['school_id']
+
+                class_name = float_int_string(row[update_item['class_id']])
+                class_id_data = db.execute(
+                    'select class_id from class_'+year_select+' where school_id = ? and class_name = ? ', (school_id, class_name, )).fetchone()
+                if class_id_data is None:
+                    return jsonify({'msg': '分校“'+school_name+'”中不存在班级：“'+class_name+'”'})
+                class_id = class_id_data['class_id']
+
+                subject = row[update_item['subject']]
+                rank_data = db.execute('select rank_up_school from rank_'+year_select +
+                                       ' where person_id = ? and subject = ? and class_id = ?', (person_id, subject, class_id, )).fetchone()
+                if rank_data is None:
+                    db.execute('insert into rank_'+year_select + ' (subject, class_id, person_id, rank_up_school, rank_up_country, rank_down_school, rank_down_country) values (?,?,?,?,?,?,?)',
+                               (subject, class_id, person_id, '暂无', '暂无', '暂无', '暂无',))
+
+            if 'rank_up_school' in update_item:
+                rank_up_school = float_int_string(
+                    row[update_item['rank_up_school']])
+                db.execute('update rank_'+year_select+' set rank_up_school = ? where subject = ? and person_id = ? and class_id = ?',
+                           (rank_up_school, subject, person_id, class_id, ))
+
+            if 'rank_up_country' in update_item:
+                rank_up_country = float_int_string(
+                    row[update_item['rank_up_country']])
+                db.execute('update rank_'+year_select+' set rank_up_country = ? where subject = ? and person_id = ? and class_id = ?',
+                           (rank_up_country, subject, person_id, class_id, ))
+
+            if 'rank_down_school' in update_item:
+                rank_down_school = float_int_string(
+                    row[update_item['rank_down_school']])
+                db.execute('update rank_'+year_select+' set rank_down_school = ? where subject = ? and person_id = ? and class_id = ?',
+                           (rank_down_school, subject, person_id, class_id, ))
+
+            if 'rank_down_country' in update_item:
+                rank_down_country = float_int_string(
+                    row[update_item['rank_down_country']])
+                db.execute('update rank_'+year_select+' set rank_down_country = ? where subject = ? and person_id = ? and class_id = ?',
+                           (rank_down_country, subject, person_id, class_id, ))
+
+        db.commit()
+        os.remove(upload_path)
 
         return jsonify({'msg': '成功导入'})
-        #     print("总行数：" + str(table.nrows))
-        #     print("总列数：" + str(table.ncols))
-
-        #     dict_title = {
-        #         '姓名': 0, '所在分校': 1, '行政职务': 2, '总课时数': 3, '年度考核': 4, '是否班主任': 5
-        #     }
-
-        #     rank_dict = {'任教学科': [], '任教班级': [], '上学期末排名': [],
-        #                  '上学期全县排名': [], '下学期末排名': [], '下学期全县排名': []}
-
-        #     row_title = table.row_values(0)
-        #     title_id = [-1 for i in range(6)]
-        #     for i in range(0, len(row_title)):
-        #         title_name = row_title[i]
-        #         if title_name in dict_title:
-        #             title_id[dict_title[title_name]] = i
-
-        #     for key in rank_dict.keys():
-        #         for i in range(1, 7):
-        #             title = key + str(i)
-        #             for j in range(0, len(row_title)):
-        #                 title_name = row_title[j]
-        #                 if title_name == title:
-        #                     rank_dict[key].append(j)
-        #                     break
-        #     print(rank_dict)
-
-        #     school_data = []
-        #     for i in range(1, table.nrows):
-        #         row_value = table.row_values(i)
-        #         school_data.append(row_value[title_id[dict_title['所在分校']]])
-
-        #     school_data = list(set(school_data))
-        #     for school in school_data:
-        #         sql_school = 'insert into school_' + year_select + \
-        #             ' (school_name) values (?)'
-        #         db.execute(sql_school, (school,))
-        #         db.commit()
-
-        #     for i in range(1, table.nrows):
-        #         row_value = table.row_values(i)
-        #         job_name = row_value[title_id[dict_title['行政职务']]]
-        #         name = row_value[title_id[dict_title['姓名']]]
-        #         school = row_value[title_id[dict_title['所在分校']]]
-        #         lesson_number = row_value[title_id[dict_title['总课时数']]]
-        #         year_result = row_value[title_id[dict_title['年度考核']]]
-        #         class_name = row_value[title_id[dict_title['是否班主任']]]
-        #         person_id = db.execute(
-        #             'select person_id from person_'+year_select+' where person_name = ?', (name,)).fetchone()['person_id']
-        #         school_id = db.execute(
-        #             'select school_id from school_'+year_select+' where school_name = ?', (school,)).fetchone()['school_id']
-
-        #         sql_job = 'insert into job_' + year_select + \
-        #             '(job_name, person_id, school_id) values (?,?,?)'
-        #         sql_workload = 'insert into workload_' + year_select + \
-        #             '(lesson_number, year_result, person_id) values (?,?,?)'
-        #         sql_class = 'insert into class_' + year_select + \
-        #             '(class_name, school_id, person_id) values (?,?,?)'
-
-        #         db.execute(sql_workload, (lesson_number,
-        #                                   year_result, person_id, ))
-        #         if job_name != '':
-        #             db.execute(sql_job, (job_name, person_id, school_id, ))
-        #         if class_name != '':
-        #             db.execute(sql_class, (class_name, school_id, person_id, ))
-        #         db.commit()
-
-        #     for i in range(1, table.nrows):
-        #         row_value = table.row_values(i)
-        #         name = row_value[title_id[dict_title['姓名']]]
-        #         school = row_value[title_id[dict_title['所在分校']]]
-        #         person_id = db.execute(
-        #             'select person_id from person_'+year_select+' where person_name = ?', (name,)).fetchone()['person_id']
-        #         school_id = db.execute(
-        #             'select school_id from school_'+year_select+' where school_name = ?', (school,)).fetchone()['school_id']
-
-        #         sql_rank = 'insert into rank_' + year_select + \
-        #             '(subject, class_id, person_id, rank_up_school, rank_up_country, rank_down_school, rank_down_country) values (?,?,?,?,?,?,?)'
-        #         for j in range(6):
-        #             subject = row_value[rank_dict['任教学科'][j]]
-        #             if subject == '':
-        #                 break
-        #             rank_up_school = row_value[rank_dict['上学期末排名'][j]]
-        #             rank_up_country = row_value[rank_dict['上学期全县排名'][j]]
-        #             rank_down_school = row_value[rank_dict['下学期末排名'][j]]
-        #             rank_down_country = row_value[rank_dict['下学期全县排名'][j]]
-        #             classname = row_value[rank_dict['任教班级'][j]]
-        #             class_id = db.execute(
-        #                 'select class_id from class_' + year_select +
-        #                 ' where class_name = ? and school_id = ?', (classname, school_id,)).fetchone()['class_id']
-
-        #             db.execute(sql_rank, (subject, class_id, person_id, rank_up_school,
-        #                                   rank_up_country, rank_down_school, rank_down_country,))
-        #         db.commit()
-
-        #     os.remove(upload_path)
-        # print('hello')
-        # return redirect(url_for('lijing_workinfo.hello'))
 
 
 @bp.route('/set_year')
@@ -428,4 +418,4 @@ def set_year():
     year = request.args.get('year')
     session['year_current'] = year
     msg = 'success'
-    return {'msg': msg}
+    return jsonify({'msg': msg})

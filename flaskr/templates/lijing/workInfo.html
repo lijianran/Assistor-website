@@ -32,13 +32,25 @@
             功能
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="javascript:void(0)" onclick="add_school_class()">分校班级</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_school_class()">分校班级</a>
             <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入数据</a>
-            <a class="dropdown-item disabled" href="javascript:void(0)" onclick="export_data()"
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_export_data()"
                 id="export_button">导出数据</a>
         </div>
     </div>
-    <div class="input-group">
+    <div class="mr-2">
+        <button id="origin_button" type="button" class="btn btn-secondary" onclick="show_origin_table()"
+            style="display: none;">查看原表</button>
+    </div>
+</div>
+
+
+<div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
+    <strong id="success_msg"></strong>
+</div>
+
+<div class="row" id="search-bar">
+    <div class="input-group mb-3 col-md-3">
         <div class="input-group-prepend">
             <label class="input-group-text" for="select_year">年份</label>
         </div>
@@ -48,13 +60,26 @@
             {% endfor %}
         </select>
     </div>
+    <div class="input-group mb-3 col-md-9">
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_school_select">
+                <option>全部数据</option>
+                {% for school in school_list %}
+                <option>{{ school }}</option>
+                {% endfor %}
+            </select>
+
+        </div>
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_select">
+            </select>
+        </div>
+        <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="search_data()">搜索</button>
+        </div>
+    </div>
 </div>
-
-
-<div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
-    <strong id="success_msg"></strong>
-</div>
-
 
 <table id="table" class="table-striped" data-sortable="true"></table>
 
@@ -99,43 +124,113 @@
                             <input type="text" class="form-control" id="class_master" placeholder="" readonly>
                         </div>
                     </div>
-                    <div class="dropdown-divider"></div>
-                    <div class="form-row">
-                        <div class="form-group col-md-2">
-                            <label for="class_id">任教班级</label>
-                            <input type="text" class="form-control" id="class_id" placeholder="" readonly>
-                        </div>
-                        <div class="form-group col-md-2">
-                            <label for="subject">任教科目</label>
-                            <input type="text" class="form-control" id="subject" placeholder="" readonly>
-                        </div>
-                        <div class="form-group col-md-2">
-                            <label for="rank_up_school">上学期全校排名</label>
-                            <input type="text" class="form-control" id="rank_up_school" placeholder="" readonly>
-                        </div>
-                        <div class="form-group col-md-2">
-                            <label for="rank_up_country">上学期全县排名</label>
-                            <input type="text" class="form-control" id="rank_up_country" placeholder="" readonly>
-                        </div>
-                        <div class="form-group col-md-2">
-                            <label for="rank_down_school">下学期全校排名</label>
-                            <input type="text" class="form-control" id="rank_down_school" placeholder="" readonly>
-                        </div>
-                        <div class="form-group col-md-2">
-                            <label for="rank_down_country">下学期全县排名</label>
-                            <input type="number" class="form-control" id="rank_down_country" placeholder="" readonly>
-                        </div>
-                    </div>
+                    <div id="rank_form"></div>
                 </form>
             </div>
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
+                <button type="button" id="update_data" class="btn btn-primary" style="display: none;"
+                    onclick="update_data()">更新</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
 
-                <button type="button" id="add_person" class="btn btn-primary" style="display: none;"
-                    onclick="add_person()">添加</button>
-                <button type="button" id="update_person" class="btn btn-primary" style="display: none;"
-                    onclick="update_person()">修改</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="school_classModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-import-title">分校班级</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        新增
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="school_string">新分校名称</label>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                aria-describedby="inputGroup-sizing-default" id="school_string">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="add_school()">添加学校</button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <select class="custom-select" id="school_select">
+                                    {% for school in school_list %}
+                                    <option>{{ school }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
+                                placeholder="新班级名称" id="class_string">
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
+                                placeholder="班主任姓名" id="person_string">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="add_class()">添加班级</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        现有分校列表
+                    </div>
+                    <div class="card-body" id="school_card">
+                        {% for school in school_list %}
+                        <div class="card mb-3 text-center">
+                            <div class="card-header" data-toggle="collapse"
+                                data-target="{{'#class_list_' ~ loop.index|string }}">
+                                {{ school }}
+                                <span class="badge badge-primary badge-pill">{{ class_list[school] | length }}</span>
+                            </div>
+                            <ul class="list-group list-group-flush collapse" id="{{'class_list_' ~ loop.index }}">
+                                {% if class_list[school] | length == 0 %}
+                                <li class="list-group-item">暂无班级数据</li>
+                                {% else %}
+                                {% for class in class_list[school] %}
+                                <li class="list-group-item">{{ class }}</li>
+                                {% endfor %}
+                                {% endif %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+
+                        <!-- <div class="card" style="width: 18rem;">
+                            <div class="card-header" data-toggle="collapse" data-target="#test">
+                                三分校
+                            </div>
+                            <ul class="list-group list-group-flush collapse" id="test">
+                                <li class="list-group-item">Cras justo odio</li>
+                                <li class="list-group-item">Dapibus ac facilisis in</li>
+                                <li class="list-group-item">Vestibulum at eros</li>
+                            </ul>
+                        </div> -->
+                        <!-- <h5 class="card-title">Special title treatment</h5>
+                      <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                      <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
@@ -226,98 +321,27 @@
     </div>
 </div>
 
-<div class="modal fade" id="school_classModal">
+<div class="modal fade" id="exportModal">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
 
             <!-- 模态框头部 -->
             <div class="modal-header">
-                <h4 class="modal-title" id="modal-import-title">分校班级</h4>
+                <h4 class="modal-title" id="modal-import-title">导出数据</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
 
             <!-- 模态框主体 -->
             <div class="modal-body">
-                <div class="card mb-3">
-                    <div class="card-header">
-                        新增
-                    </div>
-                    <div class="card-body">
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="inputGroup-sizing-default">新分校名称</span>
-                            </div>
-                            <input type="text" class="form-control" aria-label="Default"
-                                aria-describedby="inputGroup-sizing-default" id="school_string">
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button"
-                                    onclick="add_school()">添加学校</button>
-                            </div>
-                        </div>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <select class="custom-select" id="school_select">
-                                    {% for school in school_list %}
-                                    <option>{{ school }}</option>
-                                    {% endfor %}
-                                </select>
-
-                            </div>
-                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
-                                placeholder="新班级名称" id="class_string">
-                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
-                                placeholder="班主任姓名" id="person_string">
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button"
-                                    onclick="add_class()">添加班级</button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="alert alert-primary" role="alert">
+                    导出当前表格中教师基本信息数据：请选择要导出的项
                 </div>
-
-                <div class="card mb-3">
-                    <div class="card-header">
-                        现有分校列表
-                    </div>
-                    <div class="card-body" id="school_card">
-                        {% for school in school_list %}
-                        <div class="card mb-3 text-center">
-                            <div class="card-header" data-toggle="collapse"
-                                data-target="{{'#class_list_' ~ loop.index|string }}">
-                                {{ school }}
-                                <span class="badge badge-primary badge-pill">{{ class_list[school] | length }}</span>
-                            </div>
-                            <ul class="list-group list-group-flush collapse" id="{{'class_list_' ~ loop.index }}">
-                                {% if class_list[school] | length == 0 %}
-                                <li class="list-group-item">暂无班级数据</li>
-                                {% else %}
-                                {% for class in class_list[school] %}
-                                <li class="list-group-item">{{ class }}</li>
-                                {% endfor %}
-                                {% endif %}
-                            </ul>
-                        </div>
-                        {% endfor %}
-
-                        <!-- <div class="card" style="width: 18rem;">
-                            <div class="card-header" data-toggle="collapse" data-target="#test">
-                                三分校
-                            </div>
-                            <ul class="list-group list-group-flush collapse" id="test">
-                                <li class="list-group-item">Cras justo odio</li>
-                                <li class="list-group-item">Dapibus ac facilisis in</li>
-                                <li class="list-group-item">Vestibulum at eros</li>
-                            </ul>
-                        </div> -->
-                        <!-- <h5 class="card-title">Special title treatment</h5>
-                      <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                      <a href="#" class="btn btn-primary">Go somewhere</a> -->
-                    </div>
-                </div>
+                <div id="radios"></div>
             </div>
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
+                <button type="button" id="add_person" class="btn btn-primary" onclick="export_table()">导出</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
@@ -332,14 +356,33 @@
 <script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
 
 <script>
+    var update_person_id = 0;
+    var update_rank_number = 0;
+    var flag_search = false;
+
+    function init() {
+        var select_search = document.getElementById("search_select");
+        var item = {
+            '姓名': 'person_name', '所在分校': 'school_name', '行政职务': 'job_name', '总课时数': 'lesson_number',
+            '年度考核': 'year_result', '班主任': 'class_master', '任教班级': 'class_name', '任教学科': 'subject'
+        };
+
+        for (var i in item)
+            select_search.options.add(new Option(i, item[i]));
+
+
+
+    }
+    init();
+
     function operateFormatter(value, row, index) {
         return [
             '<a class="detail" href="javascript:void(0)" title="Detail">',
             '<i class="fa fa-bars"></i>',
-            '</a>  ',
+            '</a>&nbsp;&nbsp;&nbsp;',
             '<a class="update" href="javascript:void(0)" title="Update">',
             '<i class="fa fa-edit"></i>',
-            '</a>  ',
+            '</a>&nbsp;&nbsp;',
             '<a class="remove" href="javascript:void(0)" title="Remove">',
             '<i class="fa fa-trash"></i>',
             '</a>'
@@ -348,57 +391,132 @@
 
     window.operateEvents = {
         'click .detail': function (e, value, row, index) {
-            document.getElementById("modal-title").innerHTML = row.name + "--基本信息";
+            document.getElementById("modal-title").innerHTML = row.name + "--业务档案";
 
-            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
-                id: row.id
-            }, function (data) {
-                var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-                    "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-                    "skill_title", "time_skill", "skill_unit", "skill_number",
-                    "time_school", "work_kind", "job_post", "time_retire"];
-
-                for (i = 0; i < item.length; i++) {
-                    document.getElementById(item[i]).value = data[item[i]];
+            $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/search', { id: row.id }, function (datas) {
+                var item = ['person_name', 'school_name', 'job_name', 'lesson_number', 'year_result', 'class_master'];
+                for (var i = 0; i < item.length; i++) {
+                    document.getElementById(item[i]).value = datas[item[i]];
                 }
 
+                var rank_item = ['subject', 'class_id', 'rank_up_school', 'rank_up_country', 'rank_down_school', 'rank_down_country']
+                var title_item = ['任教班级', '任教科目', '上学期全校排名', '上学期全县排名', '下学期全校排名', '下学期全县排名']
+                var rank = datas['rank'];
+                rank_form = document.getElementById('rank_form');
+                rank_form.innerHTML = '';
+
+                for (var i = 0; i < rank.length; i++) {
+                    var row = document.createElement("div");
+                    row.className = "form-row";
+                    for (var j = 0; j < rank_item.length; j++) {
+                        var d = document.createElement("div");
+                        d.className = "form-group col-md-2";
+                        var label = document.createElement("label");
+                        label.setAttribute("for", rank_item[j] + i);
+                        label.innerText = title_item[j];
+                        var input = document.createElement("input");
+                        input.className = "form-control";
+                        input.readOnly = true;
+                        input.value = rank[i][j];
+                        input.id = rank_item[j] + i;
+                        d.appendChild(label);
+                        d.appendChild(input);
+                        row.appendChild(d);
+                    }
+                    var divider = document.createElement("div");
+                    divider.className = 'dropdown-divider';
+                    rank_form.appendChild(divider);
+                    rank_form.appendChild(row);
+                }
             });
             $("#myModal input").attr("readOnly", true);
-            $("#resume").attr("readOnly", true);
-            document.getElementById("add_person").style.display = "none";
-            document.getElementById("update_person").style.display = "none";
+            document.getElementById("update_data").style.display = "none";
             $('#myModal').modal('show');
 
         },
         'click .update': function (e, value, row, index) {
-            person_id = row.id;
+            document.getElementById("modal-title").innerHTML = '修改教师“' + row.name + '”的基本信息';
+            update_person_id = row.id;
 
-            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
-                id: row.id
-            }, function (data) {
-                var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-                    "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-                    "skill_title", "time_skill", "skill_unit", "skill_number",
-                    "time_school", "work_kind", "job_post", "time_retire"];
-                for (i = 0; i < item.length; i++) {
-                    document.getElementById(item[i]).value = data[item[i]];
+            $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/search', { id: row.id }, function (datas) {
+                var item = ['person_name', 'school_name', 'job_name', 'lesson_number', 'year_result', 'class_master'];
+                for (var i = 0; i < item.length; i++) {
+                    document.getElementById(item[i]).value = datas[item[i]];
                 }
+
+                var rank_item = ['class_id', 'subject', 'rank_up_school', 'rank_up_country', 'rank_down_school', 'rank_down_country']
+                var title_item = ['任教班级', '任教科目', '上学期全校排名', '上学期全县排名', '下学期全校排名', '下学期全县排名']
+                var rank = datas['rank'];
+                rank_form = document.getElementById('rank_form');
+                rank_form.innerHTML = '';
+
+                update_rank_number = rank.length;
+                var i = 0;
+                for (i = 0; i < rank.length; i++) {
+                    var row = document.createElement("div");
+                    row.className = "form-row";
+                    for (var j = 0; j < rank_item.length; j++) {
+                        var d = document.createElement("div");
+                        d.className = "form-group col-md-2";
+                        var label = document.createElement("label");
+                        label.setAttribute("for", rank_item[j] + i);
+                        label.innerText = title_item[j];
+                        var input = document.createElement("input");
+                        input.className = "form-control";
+                        input.readOnly = false;
+                        if (rank_item[j] == 'subject' || rank_item[j] == 'class_id') {
+                            input.readOnly = true;
+                        }
+                        input.value = rank[i][j];
+                        input.id = rank_item[j] + i;
+                        d.appendChild(label);
+                        d.appendChild(input);
+                        row.appendChild(d);
+                    }
+                    var divider = document.createElement("div");
+                    divider.className = 'dropdown-divider';
+                    rank_form.appendChild(divider);
+                    rank_form.appendChild(row);
+                }
+
+                // 新增
+                var row = document.createElement("div");
+                row.className = "form-row";
+                for (var j = 0; j < rank_item.length; j++) {
+                    var d = document.createElement("div");
+                    d.className = "form-group col-md-2";
+                    var label = document.createElement("label");
+                    label.setAttribute("for", rank_item[j] + i);
+                    label.innerText = title_item[j];
+                    var input = document.createElement("input");
+                    input.className = "form-control";
+                    input.readOnly = false;
+                    if (rank_item[j] == 'subject' || rank_item[j] == 'class_id') {
+                        input.placeholder = '新增';
+                    }
+                    input.id = rank_item[j] + i;
+                    d.appendChild(label);
+                    d.appendChild(input);
+                    row.appendChild(d);
+                }
+                var divider = document.createElement("div");
+                divider.className = 'dropdown-divider';
+                rank_form.appendChild(divider);
+                rank_form.appendChild(row);
             });
 
-            document.getElementById("update_person").style.display = "block";
-            document.getElementById("add_person").style.display = "none";
-            document.getElementById("modal-title").innerHTML = '修改教师"' + row.name + '"的基本信息';
             $("#myModal input").attr("readOnly", false);
-            $("#resume").attr("readOnly", false);
+            $("#person_name").attr("readOnly", true);
+            $("#class_master").attr("readOnly", true);
+            document.getElementById("update_data").style.display = "block";
             $("#myModal").modal("show");
 
-            //window.alert('You click like action, row: ' + JSON.stringify(row))
         },
         'click .remove': function (e, value, row, index) {
             window.alert("hello");
             //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
         }
-    }
+    };
 
     function init_table() {
         //window.alert("hello")
@@ -459,11 +577,40 @@
     }
     init_table();
 
+    function show_school_class() {
+        $('#school_classModal').modal('show');
+    };
+
     function show_import_modal() {
         document.getElementById("input_file").disabled = false;
         document.getElementById("button_readfile").disabled = false;
         document.getElementById("select_card").style.display = "none";
         $('#importModal').modal('show');
+    };
+
+    function show_export_data() {
+        $('#exportModal').modal('show');
+
+        var id_list = []
+        var table_data = $('#table').bootstrapTable('getData');
+        for (var i = 0; i < table_data.length; i++) {
+            id_list.push(table_data[i].id);
+        }
+
+        var datas = {};
+        datas['flag_search'] = flag_search;
+        datas["id_list"] = id_list;
+
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/exportData', datas, function (return_data) {
+            $("#exportModal").modal("hide");
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            //window.alert('/lijing/download_excel_file/' + return_data.filename)
+            window.location.href = '/lijing_workinfo/download_excel_file/' + return_data.filename;
+            //$("#myModal").modal("hide");
+            //$("#table").bootstrapTable('refresh');
+        });
+
     };
 
     function showFilename(file) {
@@ -618,11 +765,6 @@
 
     }
 
-    function add_school_class() {
-
-        $('#school_classModal').modal('show');
-    }
-
     function add_school() {
 
         var school_string = document.getElementById("school_string").value;
@@ -673,7 +815,7 @@
                     ul.appendChild(li);
                 }
                 else {
-                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]].length; j++) {
+                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]]; j++) {
                         var li = document.createElement("li");
                         li.className = "list-group-item";
                         li.innerHTML = return_data.class_list[return_data.school_list[i]][j];
@@ -782,6 +924,129 @@
 
     });
 
+    function update_data() {
+        var datas = {}
+        var item = ['person_name', 'school_name', 'job_name', 'lesson_number', 'year_result', 'class_master'];
+        var rank_item = ['class_id', 'subject', 'rank_up_school', 'rank_up_country', 'rank_down_school', 'rank_down_country']
+
+        datas['person_id'] = update_person_id;
+        for (var i = 0; i < item.length; i++) {
+            datas[item[i]] = document.getElementById(item[i]).value;
+        }
+
+        if (document.getElementById('class_id' + update_rank_number).value != '') {
+            update_rank_number++;
+        }
+        datas['rank_number'] = update_rank_number;
+        for (var i = 0; i < update_rank_number; i++) {
+            for (var j = 0; j < rank_item.length; j++) {
+                datas[rank_item[j] + i] = document.getElementById(rank_item[j] + i).value;
+            }
+        }
+
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/update_data', datas, function (return_data) {
+            if (return_data.msg == 'error') {
+                window.alert(return_data.error);
+                return;
+            }
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            $("#myModal").modal("hide");
+            $("#table").bootstrapTable('refresh');
+        });
+    }
+
+    function search_data() {
+        var search_string = document.getElementById("search_string").value;
+        if (search_string == "") {
+            window.alert("请填入要搜索内容");
+            return;
+        }
+
+        document.getElementById("select_year").disabled = true;
+        var index = document.getElementById("search_select").selectedIndex;
+        var item = document.getElementById("search_select").options[index].value;
+        index = document.getElementById("search_school_select").selectedIndex;
+        var school = document.getElementById("search_school_select").options[index].value;
+        if (index == 0) { school = '#' + school; }
+
+        datas = {};
+        datas["school_select"] = school;
+        datas["search_item"] = item;
+        datas["search_string"] = search_string;
+
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/search_data', datas, function (return_data) {
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+
+            flag_search = true;
+            document.getElementById("origin_button").style.display = "block";
+            $('#export_button').removeClass('disabled');
+            $("#table").bootstrapTable("destroy");
+            $('#table').bootstrapTable({
+                //url: '/lijing/jsondata',  // 请求数据源的路由
+                data: return_data.rows,
+                //method: 'get',
+                dataType: "json",
+                theadClasses: "thead-dark",//标题样式
+                pagination: true, //前端处理分页
+                singleSelect: false,//是否只能单选
+                search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                toolbar: '#toolbar', //工具按钮用哪个容器
+                cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: false,
+                pageNumber: 1, //初始化加载第10页，默认第一页
+                pageSize: 10, //每页的记录行数（*）
+                pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+                smartDisplay: false,
+                strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+                showColumns: true, //显示内容列下拉框
+                showRefresh: true, //显示刷新按钮
+                minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+                clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+                uniqueId: "id", //每一行的唯一标识，一般为主键列
+                showToggle: true, //是否显示详细视图和列表视图的切换按钮
+                cardView: false, //是否显示详细视图
+                detailView: false,                   //是否显示父子表
+                sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+                columns: [
+                    //{
+                    //    checkbox: false  //第一列显示复选框
+                    //},
+                    {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+                        field: 'id',
+                        title: '编号',
+                        align: 'center',  //对齐方式，居中 
+                    }, {
+                        field: 'name',
+                        title: '姓名',
+                        align: 'center'
+                    }, {
+                        field: 'operations',
+                        title: '操作',
+                        align: 'center',
+                        clickToSelect: false,
+                        events: window.operateEvents,
+                        formatter: operateFormatter
+                    }
+                ],
+                //onDblClickRow: function (row, $element, field) {},
+            });
+
+        });
+    }
+
+    function show_origin_table() {
+        flag_search = false;
+
+        $('#table').bootstrapTable("destroy");
+        init_table();
+        document.getElementById("select_year").disabled = false;
+        document.getElementById("search_string").value = "";
+        document.getElementById("success_info").style.display = "none";
+        document.getElementById("origin_button").style.display = "none";
+        $('#export_button').addClass('disabled');
+    }
 
 
 </script>

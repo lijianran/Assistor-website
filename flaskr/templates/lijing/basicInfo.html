@@ -47,7 +47,6 @@
     </div>
 </div>
 
-
 <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
     <!--     
     <div class="btn-group mr-2" role="group" aria-label="First group">
@@ -65,21 +64,19 @@
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <a class="dropdown-item" href="javascript:void(0)" onclick="add_data()">添加</a>
             <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
-            <a class="dropdown-item disabled" href="javascript:void(0)" onclick="export_data()"
+            <a class="dropdown-item" href="javascript:void(0)" onclick="export_data()"
                 id="export_button">导出</a>
         </div>
     </div>
     <div class="mr-2">
-        <button id="origin_button" type="button" class="btn btn-secondary" onclick="origin_table()"
+        <button id="origin_button" type="button" class="btn btn-secondary" onclick="show_origin_table()"
             style="display: none;">查看原表</button>
     </div>
 </div>
 
-
 <div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
     <strong id="success_msg"></strong>
 </div>
-
 
 <table id="table" class="table-striped" data-sortable="true"></table>
 
@@ -308,6 +305,7 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 
@@ -315,7 +313,8 @@
 <script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
 
 <script>
-    var person_id = 0;
+    var update_person_id = 0;
+    var flag_search = false;
 
     function init() {
         var select_search = document.getElementById("search_select");
@@ -363,10 +362,10 @@
         return [
             '<a class="detail" href="javascript:void(0)" title="Detail">',
             '<i class="fa fa-bars"></i>',
-            '</a>  ',
+            '</a>&nbsp;&nbsp;&nbsp;',
             '<a class="update" href="javascript:void(0)" title="Update">',
             '<i class="fa fa-edit"></i>',
-            '</a>  ',
+            '</a>&nbsp;&nbsp;',
             '<a class="remove" href="javascript:void(0)" title="Remove">',
             '<i class="fa fa-trash"></i>',
             '</a>'
@@ -398,7 +397,7 @@
 
         },
         'click .update': function (e, value, row, index) {
-            person_id = row.id;
+            update_person_id = row.id;
 
             $.getJSON($SCRIPT_ROOT + '/lijing/search', {
                 id: row.id
@@ -485,14 +484,16 @@
     }
     init_table();
 
-    function origin_table() {
+    function show_origin_table() {
+        flag_search = false;
+
         $('#table').bootstrapTable("destroy");
         init_table();
         document.getElementById("select_year").disabled = false;
         document.getElementById("search_string").value = "";
         document.getElementById("success_info").style.display = "none";
         document.getElementById("origin_button").style.display = "none";
-        $('#export_button').addClass('disabled');
+        //$('#export_button').addClass('disabled');
     }
 
     function add_data() {
@@ -562,12 +563,12 @@
             "skill_title", "time_skill", "skill_unit", "skill_number",
             "time_school", "work_kind", "job_post", "time_retire"];
 
-        datas["person_id"] = person_id;
+        datas["person_id"] = update_person_id;
         for (i = 0; i < item.length; i++) {
             datas[item[i]] = document.getElementById(item[i]).value;
         }
 
-        $.getJSON($SCRIPT_ROOT + '/lijing/update_person', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing/update_data', datas, function (return_data) {
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
             $("#myModal").modal("hide");
@@ -594,8 +595,9 @@
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
 
+            flag_search = true;
             document.getElementById("origin_button").style.display = "block";
-            $('#export_button').removeClass('disabled');
+            //$('#export_button').removeClass('disabled');
             $("#table").bootstrapTable("destroy");
             $('#table').bootstrapTable({
                 //url: '/lijing/jsondata',  // 请求数据源的路由
@@ -672,6 +674,7 @@
         }
 
         var datas = {};
+        datas['flag_search'] = flag_search;
         var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
             "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
             "skill_title", "time_skill", "skill_unit", "skill_number",
@@ -689,11 +692,11 @@
         }
         datas["id_list"] = id_list;
 
-        $.getJSON($SCRIPT_ROOT + '/lijing/exportData3244', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing/exportData', datas, function (return_data) {
             $("#exportModal").modal("hide");
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
-            window.alert('/lijing/download_excel_file/' + return_data.filename)
+            //window.alert('/lijing/download_excel_file/' + return_data.filename)
             window.location.href = '/lijing/download_excel_file/' + return_data.filename;
             //$("#myModal").modal("hide");
             //$("#table").bootstrapTable('refresh');

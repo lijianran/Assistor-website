@@ -74,8 +74,6 @@ def jsondata():
     except:
         return jsonify({'total': len(data), 'rows': data})
 
-
-
     if request.method == 'POST':
         print('post')
     if request.method == 'GET':
@@ -151,7 +149,7 @@ def importData():
 
         if year_select not in year_list:
             db.execute('insert into year_list (year, basicinfo, workinfo) values (?,?,?)',
-                       (year_select,0,0,))
+                       (year_select, 0, 0,))
             for sql in sql_create:
                 db.execute(sql)
             db.commit()
@@ -161,7 +159,8 @@ def importData():
 
         if filename.endswith('.xlsx'):
             basepath = os.path.dirname(__file__)
-            upload_path = os.path.join(basepath, '..\\static\\uploads', filename)
+            upload_path = os.path.join(
+                basepath, '..\\static\\uploads', filename)
             f.save(upload_path)
 
             data = xlrd.open_workbook(upload_path)
@@ -201,24 +200,24 @@ def importData():
                            (insert_data[0], insert_data[1], insert_data[2], insert_data[3], insert_data[4],
                             insert_data[5], insert_data[6], insert_data[7], insert_data[8]))
                 person_id = db.execute(
-                    'select person_id from person_'+year_select+' where id_number=?', (insert_data[2],)).fetchone()
+                    'select person_id from person_'+year_select+' where person_name = ?', (insert_data[0],)).fetchone()['person_id']
 
                 sql_education = 'insert into education_'+year_select + \
                     ' (edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,person_id) values (?,?,?,?,?,?,?,?,?)'
                 db.execute(sql_education,
                            (insert_data[9], insert_data[10], insert_data[11], insert_data[12], insert_data[13],
-                            insert_data[14], insert_data[15], insert_data[16], person_id[0]))
+                            insert_data[14], insert_data[15], insert_data[16], person_id))
 
                 sql_skill = 'insert into skill_'+year_select + \
                     ' (skill_title,time_skill,skill_unit,skill_number,person_id) values (?,?,?,?,?)'
                 db.execute(sql_skill,
-                           (insert_data[17], insert_data[18], insert_data[19], insert_data[20], person_id[0]))
+                           (insert_data[17], insert_data[18], insert_data[19], insert_data[20], person_id))
 
                 sql_workinfo = 'insert into workinfo_'+year_select + \
                     ' (time_school,work_kind,job_post,time_retire,person_id) values (?,?,?,?,?)'
                 db.execute(sql_workinfo,
                            (insert_data[21], insert_data[22],
-                            insert_data[23], insert_data[24], person_id[0]))
+                            insert_data[23], insert_data[24], person_id))
                 db.commit()
 
             os.remove(upload_path)
@@ -230,8 +229,10 @@ def importData():
             return redirect(url_for('lijing.basicInfo'))
 
 
-@bp.route('/exportData3244', methods=('GET', 'POST'))
+@bp.route('/exportData', methods=('GET', 'POST'))
 def exportData():
+    db = get_lijing_db()
+
     export_data = [0 for i in range(25)]
     item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
             "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
@@ -240,8 +241,6 @@ def exportData():
 
     for i in range(0, len(item)):
         export_data[i] = request.args.get(item[i])
-
-    id_list = request.args.getlist("id_list[]")
 
     export_item = []
     for i in range(0, len(item)):
@@ -262,13 +261,21 @@ def exportData():
         education+'.person_id and '+person+'.person_id = '+skill + '.person_id and '+person+'.person_id = '+workinfo+'.person_id \
         where '+person+'.person_id = ?'
 
+    flag_search = request.args.get('flag_search')
+    id_list = []
+    if flag_search == 'true':
+        id_list = request.args.getlist("id_list[]")
+    else:
+        person_data = db.execute('select person_id from '+person).fetchall()
+        for i in person_data:
+            id_list.append(i['person_id'])
+
     table_data = []
-    db = get_lijing_db()
-    for id in id_list:
-        result = db.execute(sql_search, (int(id),)).fetchall()
+    for i in id_list:
+        result = db.execute(sql_search, (int(i), )).fetchone()
         row = []
         for item in export_item:
-            row.append(result[0][item])
+            row.append(result[item])
         table_data.append(row)
 
     workbook = xlsxwriter.Workbook(
@@ -348,7 +355,7 @@ def download_excel_file(excel_filename):
     """
     # file_name = request.args.get('fileId')
     file_path = os.path.join(os.path.dirname(
-        __file__), 'static', 'downloads', excel_filename)
+        __file__), '..\\static', 'downloads', excel_filename)
     print(file_path)
     if os.path.isfile(file_path):
         return send_file(file_path, as_attachment=True)
@@ -401,7 +408,7 @@ def update_person():
                (update_data[21], update_data[22],
                 update_data[23], update_data[24], person_id))
     db.commit()
-    msg = '成功修改教师“' + update_data[0] + '”的信息'
+    msg = '成功修改教师“' + update_data[0] + '”的基本信息'
 
     return {'msg': msg}
 
@@ -417,10 +424,17 @@ def seach_person():
     education = 'education_'+year
     skill = 'skill_'+year
     workinfo = 'workinfo_'+year
-    sql = 'select '+person+'.person_id, '+person+'.person_name, '+person+'.gender from '+person+' join '+education+', '+skill+', '+workinfo + \
-        ' on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and '+person+'.person_id = '+workinfo+'.person_id \
-        where ' + search_item + ' like "%' + search_string + '%"'
+    # sql = 'select '+person+'.person_id, '+person+'.person_name, '+person+'.gender from '+person+' join '+education+', '+skill+', '+workinfo + \
+    #     ' on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and ' + \
+    #     person+'.person_id = '+workinfo+'.person_id where ' + \
+    #     search_item + ' like \'%' + search_string + '%\';'
+    sql = 'select p.person_id, p.person_name, p.gender from '+person+' as p join '+education+' as e on p.person_id = e.person_id join ' + skill + \
+        ' as s on p.person_id = s.person_id join '+workinfo + \
+        ' as w on p.person_id = w.person_id where ' + \
+        search_item + ' like \'%' + search_string + '%\';'
+
     result = db.execute(sql).fetchall()
+
     db.commit()
 
     data = []
@@ -431,8 +445,7 @@ def seach_person():
         d['gender'] = row['gender']
         data.append(d)
 
-    msg = '成功查询到'+str(len(result))+'条信息'
-    limit = 10
-    offset = 0
+    msg = '成功查询到'+str(len(data))+'条信息'
+
     return jsonify({'msg': msg, 'total': len(data), 'rows': data})
-    # return {'msg': msg, 'data': data}
+

@@ -114,8 +114,6 @@ def jsondata():
         school_data = db.execute('select school_name from '+job+' join '+school+' on '+job +
                                  '.school_id = '+school+'.school_id where person_id = ?', (i, )).fetchone()
         if school_data is None:
-            # if db.execute('select job_name from job_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
-            #     db.execute('insert into job_'+year_select+' (person_id, job_name) values (?,?)')
             db.execute(
                 'insert into '+job+' (job_name, school_id, person_id) values (?,?,?)', ('无', 1, i, ))
             db.commit()
@@ -413,9 +411,310 @@ def importData():
         return jsonify({'msg': '成功导入'})
 
 
+@bp.route('/exportData', methods=('GET', 'POST'))
+def exportData():
+    db = get_lijing_db()
+
+    year = session['year_current']
+    person = 'person_'+year
+    clas = 'class_'+year
+    school = 'school_'+year
+    job = 'job_'+year
+    workload = 'workload_'+year
+    sql_search = 'select p.person_name, class.class_name, school.school_name, job.job_name, work.lesson_number, work.year_result from '+person+' as p left join '+clas+' as class on p.person_id = class.person_id left join ' + \
+        job+' as job on p.person_id = job.person_id left join '+workload+' as work on p.person_id = work.person_id left join ' + \
+            school+' as school on job.school_id = school.school_id where p.person_id = ?'
+
+    print(sql_search)
+    flag_search = request.args.get('flag_search')
+    id_list = []
+    if flag_search == 'true':
+        id_list = request.args.getlist("id_list[]")
+    else:
+        person_data = db.execute('select person_id from '+person).fetchall()
+        for i in person_data:
+            id_list.append(i['person_id'])
+
+    export_item = ['person_name', 'class_name', 'school_name',
+                   'job_name', 'lesson_number', 'year_result']
+    table_data = []
+    for i in id_list:
+        result = db.execute(sql_search, (int(i), )).fetchone()
+        row = []
+        for item in export_item:
+            row.append(result[item])
+        table_data.append(row)
+
+    item_name_dict = {'person_name': '姓名', "class_name": '是否班主任', "school_name": '所在分校',
+                      "job_name": '行政职务', "lesson_number": '总课时数', "year_result": '年度考核'}
+
+    workbook = xlsxwriter.Workbook(
+        'flaskr\\static\\downloads\\exportData.xlsx')
+    worksheet = workbook.add_worksheet('Sheet1')
+    for i in range(len(export_item)):
+        worksheet.write(0, i, item_name_dict[export_item[i]])
+    for i in range(len(id_list)):
+        for j in range(len(export_item)):
+            worksheet.write(i+1, j, table_data[i][j])
+
+    workbook.close()
+
+    msg = '成功导出'+str(len(id_list))+'条信息'
+    return {'msg': 'chfsdfsdf', 'filename': 'exportData.xlsx'}
+
+
+@bp.route('/search', methods=('GET', 'POST'))
+def search():
+    person_id = request.args.get('id')
+
+    db = get_lijing_db()
+    datas = {}
+
+    item = ['person_name', 'school_name', 'job_name',
+            'lesson_number', 'year_result', 'class_master']
+    year = session['year_current']
+    person_name = db.execute('select person_name from person_' +
+                             year+' where person_id = ?', (person_id, )).fetchone()['person_name']
+    job_data = db.execute('select school_id, job_name from job_' +
+                          year+' where person_id = ?', (person_id, )).fetchone()
+    school_id = job_data['school_id']
+    job_name = job_data['job_name']
+    school_name = db.execute('select school_name from school_' +
+                             year+' where school_id = ?', (school_id, )).fetchone()['school_name']
+
+    workload_data = db.execute('select lesson_number, year_result from workload_' +
+                               year+' where person_id = ?', (person_id, )).fetchone()
+    if workload_data is None:
+        lesson_number = '暂无'
+        year_result = '暂无'
+    else:
+        lesson_number = workload_data['lesson_number']
+        year_result = workload_data['year_result']
+
+    class_data = db.execute('select class_name from class_' +
+                            year+' where person_id = ?', (person_id, )).fetchone()
+    if class_data is None:
+        class_master = '否'
+    else:
+        class_master = class_data['class_name']
+
+    datas['person_name'] = person_name
+    datas['school_name'] = school_name
+    datas['job_name'] = job_name
+    datas['lesson_number'] = lesson_number
+    datas['year_result'] = year_result
+    datas['class_master'] = class_master
+
+    rank_data = db.execute('select subject, class_id, rank_up_school, rank_up_country, rank_down_school, rank_down_country from rank_' +
+                           year+' where person_id = ?', (person_id, )).fetchall()
+    rank_list = []
+    for i in rank_data:
+        d = []
+        d.append(db.execute('select class_name from class_'+year +
+                            ' where class_id = ?', (i['class_id'], )).fetchone()['class_name'])
+        d.append(i['subject'])
+        d.append(i['rank_up_school'])
+        d.append(i['rank_up_country'])
+        d.append(i['rank_down_school'])
+        d.append(i['rank_down_country'])
+        rank_list.append(d)
+    datas['rank'] = rank_list
+
+    return jsonify(datas)
+
+
+@bp.route('/update_data', methods=('GET', 'POST'))
+def update_data():
+    item = ['person_name', 'school_name', 'job_name',
+            'lesson_number', 'year_result', 'class_master']
+    rank_item = ['class_id', 'subject', 'rank_up_school',
+                 'rank_up_country', 'rank_down_school', 'rank_down_country']
+
+    update_data = {}
+    update_data['person_id'] = int(request.args.get('person_id'))
+    for i in item:
+        update_data[i] = request.args.get(i)
+
+    rank_number = int(request.args.get('rank_number'))
+    rank_data = []
+    for i in range(rank_number):
+        rank = []
+        for r in rank_item:
+            rank.append(request.args.get(r+str(i)))
+        rank_data.append(rank)
+
+    db = get_lijing_db()
+    year_select = session['year_current']
+    person_id = update_data['person_id']
+
+    school_name = update_data['school_name']
+    school_id_data = db.execute(
+        'select school_id from school_'+year_select+' where school_name = ?', (school_name, )).fetchone()
+    if school_id_data is None:
+        return jsonify({'msg': 'error', 'error': '分校：“'+school_name+'” 不存在'})
+    school_id = school_id_data['school_id']
+    db.execute('update job_'+year_select +
+               ' set school_id = ? where person_id = ?', (school_id, person_id, ))
+
+    job_name = update_data['job_name']
+    db.execute('update job_'+year_select +
+               ' set job_name = ? where person_id = ?', (job_name, person_id, ))
+
+    lesson_number = update_data['lesson_number']
+    if db.execute('select workload_id from workload_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
+        db.execute('insert into workload_'+year_select +
+                   ' (lesson_number, year_result, person_id) values (?,?,?)', (lesson_number, '', person_id, ))
+    else:
+        db.execute('update workload_' + year_select +
+                   ' set lesson_number = ? where person_id = ?', (lesson_number, person_id, ))
+
+    year_result = update_data['year_result']
+    db.execute('update workload_' + year_select +
+               ' set year_result = ? where person_id = ?', (year_result, person_id, ))
+
+    # 更新排名信息
+    for rank in rank_data:
+        class_name = rank[0]
+        class_id_data = db.execute(
+            'select class_id from class_'+year_select+' where school_id = ? and class_name = ? ', (school_id, class_name, )).fetchone()
+        if class_id_data is None:
+            return jsonify({'msg': 'error', 'error': '分校“'+school_name+'”中不存在班级：“'+class_name+'”'})
+        class_id = class_id_data['class_id']
+
+        subject = rank[1]
+        rank_data = db.execute('select rank_up_school from rank_'+year_select +
+                               ' where person_id = ? and subject = ? and class_id = ?', (person_id, subject, class_id, )).fetchone()
+        if rank_data is None:
+            db.execute('insert into rank_'+year_select + ' (subject, class_id, person_id, rank_up_school, rank_up_country, rank_down_school, rank_down_country) values (?,?,?,?,?,?,?)',
+                       (subject, class_id, person_id, rank[2], rank[3], rank[4], rank[5], ))
+        else:
+            # db.execute('delete from rank_'+year_select +
+            #            ' where person_id = ? and subject = ? and class_id = ?', (person_id, subject, class_id, ))
+            db.execute('update rank_'+year_select+' set rank_up_school = ?, rank_up_country = ?, rank_down_school = ?, rank_down_country = ? where person_id = ? and subject = ? and class_id = ?',
+                       (rank[2], rank[3], rank[4], rank[5], person_id, subject, class_id, ))
+            # db.execute('insert into rank_'+year_select + ' (subject, class_id, person_id, rank_up_school, rank_up_country, rank_down_school, rank_down_country) values (?,?,?,?,?,?,?)',
+            #            (subject, class_id, person_id, rank[2], rank[3], rank[4], rank[5], ))
+
+    db.commit()
+    return jsonify({'msg': '成功更新教师“' + update_data['person_name'] + '”的业务档案'})
+
+
+@bp.route('/search_data', methods=('GET', 'POST'))
+def search_data():
+    search_item = request.args.get('search_item', '暂无', type=str)
+    search_string = request.args.get('search_string', '暂无', type=str)
+    search_school = request.args.get('school_select', '暂无', type=str)
+
+    db = get_lijing_db()
+    year = session['year_current']
+    print(search_school, search_item, search_string)
+
+    # var item = {
+    #     '姓名': 'person_name', '所在分校': 'school_name', '行政职务': 'job_name', '总课时数': 'lesson_number',
+    #     '年度考核': 'year_result', '班主任': 'class_master', '任教班级': 'class_name', '任教学科': 'subject'
+    # };
+    person_dict = {}
+
+    if search_school != '#全部数据':
+        person_data = db.execute('select person_'+year+'.person_id, person_name from job_'+year+' join school_'+year+', person_'+year+' on job_'+year +
+                                 '.school_id = school_' + year+'.school_id and job_'+year+'.person_id = person_'+year+'.person_id where school_name = ?', (search_school, )).fetchall()
+    else:
+        person_data = db.execute(
+            'select person_id, person_name from person_'+year).fetchall()
+    for person in person_data:
+        person_dict[person['person_id']] = person['person_name']
+
+    data = []
+    if search_item == 'person_name':
+        result = db.execute('select person_id from person_'+year +
+                            ' where person_name like "%'+search_string+'%"').fetchall()
+
+    if search_item == 'school_name':
+        school_data = db.execute('select school_id from school_' +
+                                 year+' where school_name like "%'+search_string+'%"').fetchone()
+        if school_data is None:
+            return jsonify({'msg': '不存在该分校', 'total': len(data), 'rows': data})
+        result = db.execute('select person_id from job_' +
+                            year+' where school_id = ?', (school_data['school_id'],)).fetchall()
+
+    if search_item == 'job_name':
+        result = db.execute('select person_id from job_' +
+                            year+' where job_name like "%'+search_string+'%"').fetchall()
+
+    if search_item == 'lesson_number':
+        result = db.execute('select person_id from workload_'+year +
+                            ' where lesson_number like "%'+search_string+'%"').fetchall()
+
+    if search_item == 'year_result':
+        result = db.execute('select person_id from workload_'+year +
+                            ' where year_result like "%'+search_string+'%"').fetchall()
+
+    if search_item == 'class_master':
+        result = db.execute('select person_id from class_'+year +
+                            ' where class_name like "%'+search_string+'%"').fetchall()
+
+    if search_item == 'class_name':
+        class_data = db.execute('select class_id from class_'+year +
+                                ' where class_name like "%'+search_string+'%"').fetchall()
+        if len(class_data) == 0:
+            return jsonify({'msg': '不存在该班级', 'total': len(data), 'rows': data})
+        elif len(class_data) == 1:
+            result = db.execute('select person_id from rank_'+year +
+                                ' where class_id = ?', (class_data[0]['class_id'], )).fetchall()
+        else:
+            if search_school == '#全部数据':
+                return jsonify({'msg': '请选择分校', 'total': len(data), 'rows': data})
+            else:
+                class_id = db.execute('select class_id from class_'+year+' join school_'+year+' on class_'+year +
+                                      '.school_id = school_'+year+'.school_id where class_name like "%'+search_string+'%"').fetchone()['class_id']
+                result = db.execute('select person_id from rank_' +
+                                    year + ' where class_id = ?', (class_id, )).fetchall()
+
+    if search_item == 'subject':
+        result = db.execute('select person_id from rank_' +
+                            year + ' where subject like "%'+search_string+'%"').fetchall()
+
+    person_id_list = []
+    for i in result:
+        person_id = i['person_id']
+        if type(person_id) != int:
+            person_id = int(person_id)
+        if person_id not in person_dict:
+            continue
+        person_id_list.append(person_id)
+    person_id_list = list(set(person_id_list))
+
+    for person_id in person_id_list:
+        d = {}
+        d['id'] = person_id
+        d['name'] = person_dict[person_id]
+        data.append(d)
+
+    msg = '成功查询到 '+str(len(data))+' 条信息'
+
+    return jsonify({'msg': msg, 'total': len(data), 'rows': data})
+
+
 @bp.route('/set_year')
 def set_year():
     year = request.args.get('year')
     session['year_current'] = year
     msg = 'success'
     return jsonify({'msg': msg})
+
+
+@bp.route('/download_excel_file/<string:excel_filename>')
+def download_excel_file(excel_filename):
+    """
+    下载src_file目录下面的文件
+    eg：下载当前目录下面的123.tar 文件，eg:http://localhost:5000/download?fileId=123.tar
+    :return:
+    """
+    # file_name = request.args.get('fileId')
+    file_path = os.path.join(os.path.dirname(
+        __file__), '..\\static', 'downloads', excel_filename)
+    print(file_path)
+    if os.path.isfile(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        return "The downloaded file does not exist"

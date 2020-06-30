@@ -1,0 +1,518 @@
+{% extends 'base.html' %}
+
+<h1>{% block title %}lijing{% endblock %}</h1>
+
+
+{% block tools %}
+
+<div class="list-group">
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
+        data-target="#demo">教师管理</a>
+    <div class="list-group collapse show" id="demo">
+        <a href="{{ url_for('lijing_basicinfo.hello') }}" class="list-group-item list-group-item-action">1.教师基本信息</a>
+        <a href="{{ url_for('lijing_workinfo.hello') }}" class="list-group-item list-group-item-action">2.教师业务档案</a>
+        <a href="{{ url_for('lijing_honorinfo.hello') }}"
+            class="list-group-item list-group-item-action active">3.教师荣誉档案</a>
+    </div>
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
+    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 id="jumbotron_string">教师荣誉档案</h1>
+</div>
+
+<div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
+    <strong id="success_msg"></strong>
+</div>
+
+<div class="row" id="search_bar">
+    <div class="input-group mb-3 col-md-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="select_year">年份</label>
+        </div>
+        <select class="custom-select" id="select_year">
+            {% for year in year_list %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="input-group mb-3 col-md-9">
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_select">
+            </select>
+        </div>
+        <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="search_person()">搜索</button>
+        </div>
+    </div>
+</div>
+
+<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
+    <div class="dropdown mr-2">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            功能
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_add_modal()">添加</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="export_data()" id="export_button">导出</a>
+        </div>
+    </div>
+    <div class="mr-2">
+        <button id="origin_button" type="button" class="btn btn-secondary" onclick="show_origin_table()"
+            style="display: none;">查看原表</button>
+    </div>
+</div>
+
+<table id="table" class="table-striped" data-sortable="true"></table>
+
+<div class="modal fade" id="detailModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="detail_modal_title">荣誉档案</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+
+                <div id="honor_list"></div>
+
+                <div class="card" id="honor_add" style="display: none;">
+                    <div class="card-header">
+                        新增
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('lijing_honorinfo.add_honor') }}" method='post'>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="person_name_add">获奖教师姓名</label>
+                                </div>
+                                <input type="text" class="form-control" placeholder="" id="person_name_add"
+                                    name="person_name" required>
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="submit">添加</button>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-3">
+                                    <label for="honor_name_add">获奖名称</label>
+                                    <input type="text" class="form-control" id="honor_name_add" name="honor_name"
+                                        placeholder="">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="honor_grade_add">证书级别</label>
+                                    <input type="text" class="form-control" id="honor_grade_add" name="honor_grade"
+                                        placeholder="">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="honor_time_add">发证时间</label>
+                                    <input type="text" class="form-control" id="honor_time_add" name="honor_time"
+                                        placeholder="">
+                                </div>
+                                <div class="form-group col-md-5">
+                                    <label for="honor_number_add">证书编号</label>
+                                    <input type="text" class="form-control" id="honor_number_add" name="honor_number"
+                                        placeholder="">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-3">
+                                    <label for="honor_unit_add">发证单位</label>
+                                    <input type="text" class="form-control" id="honor_unit_add" name="honor_unit"
+                                        placeholder="">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="get_time_add">获奖时间</label>
+                                    <input type="text" class="form-control" id="get_time_add" name="get_time"
+                                        placeholder="">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="school_name_add">获奖时所在分校</label>
+                                    <input type="text" class="form-control" id="school_name_add" name="school_name"
+                                        placeholder="">
+                                </div>
+                                <div class="form-group col-md-5">
+                                    <label for="honor_remark_add">备注</label>
+                                    <input type="text" class="form-control" id="honor_remark_add" name="honor_remark"
+                                        placeholder="">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- <div class="dropdown-divider"></div> -->
+
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <button type="button" id="update_honor" class="btn btn-primary" style="display: none;"
+                    onclick="update_honor()">修改</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="importModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-import-title">导入数据</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form action="{{ url_for('lijing_honorinfo.importData') }}" enctype='multipart/form-Data' method='POST'>
+                    <div class="alert alert-primary" role="alert">
+                        请选择要导入的Excel表格(.xlsx)
+                    </div>
+                    <!-- <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">年份</label>
+                        </div>
+                        <select class="custom-select" id="inputGroupSelect01" name="year_select">
+                            {% for year in year_list %}
+                            {% if year != "暂无数据" %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endif %}
+                            {% endfor %}
+                            <option value="{{ year_new }}">{{ year_new }} （新增）</option>
+                        </select>
+                    </div> -->
+                    <div class="input-group">
+                        <div class="custom-file">
+                            <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input"
+                                id="inputGroupFile04" name="file" required>
+                            <label id="filename_label" class="custom-file-label" for="inputGroupFile04">选择文件</label>
+                        </div>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">导入</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button> -->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block files %}
+<script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
+
+<script>
+    var update_person_id = 0;
+    var update_honor_number = 0;
+    var flag_search = false;
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a class="detail" href="javascript:void(0)" title="Detail">',
+            '<i class="fa fa-bars"></i>',
+            '</a>&nbsp;&nbsp;&nbsp;',
+            '<a class="update" href="javascript:void(0)" title="Update">',
+            '<i class="fa fa-edit"></i>',
+            '</a>&nbsp;&nbsp;',
+            '<a class="remove" href="javascript:void(0)" title="Remove">',
+            '<i class="fa fa-trash"></i>',
+            '</a>'
+        ].join('')
+    };
+
+    window.operateEvents = {
+        'click .detail': function (e, value, row, index) {
+            document.getElementById("detail_modal_title").innerHTML = row.name + "--荣誉档案";
+
+            $.getJSON($SCRIPT_ROOT + '/lijing_honorinfo/search', { id: row.id }, function (data) {
+                var item = ['school_name', 'honor_time', 'get_time', 'honor_unit', 'honor_name', 'honor_grade', 'honor_number', 'honor_remark']
+                var honor_data = data['data_list'];
+                if (honor_data.length == 0) {
+                    var honor_list = document.getElementById('honor_list');
+                    honor_list.innerHTML = '<h4>暂无</h4>';
+                    return;
+                }
+
+                var honor_item = ['honor_name', 'honor_grade', 'honor_time', 'honor_number', 'honor_unit', 'get_time', 'school_name', 'honor_remark']
+                var title_item = ['获奖名称', '证书级别', '发证时间', '证书编号', '发证单位', '获奖时间', '获奖时所在分校', '备注']
+                var md = [3, 2, 2, 5, 3, 2, 2, 5];
+
+                var honor_list = document.getElementById('honor_list');
+                honor_list.innerHTML = '';
+
+                for (var i = 0; i < honor_data.length; i++) {
+                    var honor = honor_data[i];
+
+                    var card = document.createElement("div");
+                    card.className = "card";
+                    var header = document.createElement("div");
+                    header.className = "card-header";
+                    header.innerHTML = '荣誉' + (i + 1);
+                    var body = document.createElement("div");
+                    body.className = "card-body";
+                    card.appendChild(header);
+                    card.appendChild(body);
+
+                    var row1 = document.createElement("div");
+                    row1.className = "form-row";
+                    var row2 = document.createElement("div");
+                    row2.className = "form-row";
+                    for (var j = 0; j < 8; j++) {
+                        var div = document.createElement("div");
+                        div.className = "form-group col-md-" + md[j];
+                        var label = document.createElement("label");
+                        label.setAttribute("for", honor_item[j] + i);
+                        label.innerText = title_item[j];
+                        var input = document.createElement("input");
+                        input.className = "form-control";
+                        input.readOnly = true;
+                        input.value = honor[honor_item[j]];
+                        input.id = honor_item[j] + i;
+                        div.appendChild(label);
+                        div.appendChild(input);
+                        if (j < 4) { row1.appendChild(div); }
+                        else { row2.appendChild(div); }
+                    }
+                    body.appendChild(row1);
+                    body.appendChild(row2);
+
+                    honor_list.appendChild(card);
+
+                    var divider = document.createElement("div");
+                    divider.className = 'dropdown-divider';
+                    honor_list.appendChild(divider);
+                    //honor_list.appendChild(divider);
+                }
+
+            });
+            $("#honor_list input").attr("readOnly", true);
+            document.getElementById("update_honor").style.display = "none";
+            document.getElementById("honor_add").style.display = "none";
+            $('#detailModal').modal('show');
+
+        },
+        'click .update': function (e, value, row, index) {
+            update_person_id = row.id;
+
+            $.getJSON($SCRIPT_ROOT + '/lijing_honorinfo/search', { id: row.id }, function (data) {
+                var item = ['school_name', 'honor_time', 'get_time', 'honor_unit', 'honor_name', 'honor_grade', 'honor_number', 'honor_remark']
+                var honor_data = data['data_list'];
+                if (honor_data.length == 0) {
+                    var honor_list = document.getElementById('honor_list');
+                    honor_list.innerHTML = '<h4>暂无</h4>';
+                    return;
+                }
+
+                var honor_item = ['honor_name', 'honor_grade', 'honor_time', 'honor_number', 'honor_unit', 'get_time', 'school_name', 'honor_remark']
+                var title_item = ['获奖名称', '证书级别', '发证时间', '证书编号', '发证单位', '获奖时间', '获奖时所在分校', '备注']
+                var md = [3, 2, 2, 5, 3, 2, 2, 5];
+
+                var honor_list = document.getElementById('honor_list');
+                honor_list.innerHTML = '';
+
+                update_honor_number = honor_data.length;
+                for (var i = 0; i < honor_data.length; i++) {
+                    var honor = honor_data[i];
+
+                    var card = document.createElement("div");
+                    card.className = "card";
+                    var header = document.createElement("div");
+                    header.className = "card-header";
+                    header.innerHTML = '荣誉' + (i + 1);
+                    var body = document.createElement("div");
+                    body.className = "card-body";
+                    card.appendChild(header);
+                    card.appendChild(body);
+
+                    var row1 = document.createElement("div");
+                    row1.className = "form-row";
+                    var row2 = document.createElement("div");
+                    row2.className = "form-row";
+                    for (var j = 0; j < 8; j++) {
+                        var div = document.createElement("div");
+                        div.className = "form-group col-md-" + md[j];
+                        var label = document.createElement("label");
+                        label.setAttribute("for", honor_item[j] + i);
+                        label.innerText = title_item[j];
+                        var input = document.createElement("input");
+                        input.className = "form-control";
+                        input.readOnly = false;
+                        input.value = honor[honor_item[j]];
+                        input.id = honor_item[j] + i;
+                        div.appendChild(label);
+                        div.appendChild(input);
+                        if (j < 4) { row1.appendChild(div); }
+                        else { row2.appendChild(div); }
+                    }
+                    body.appendChild(row1);
+                    body.appendChild(row2);
+
+                    honor_list.appendChild(card);
+
+                    var divider = document.createElement("div");
+                    divider.className = 'dropdown-divider';
+                    honor_list.appendChild(divider);
+                }
+
+            });
+            $("#honor_list input").attr("readOnly", false);
+            document.getElementById("update_honor").style.display = "block";
+            document.getElementById("honor_add").style.display = "none";
+            document.getElementById("detail_modal_title").innerHTML = '修改教师“' + row.name + '”的荣誉档案';
+            $('#detailModal').modal('show');
+
+
+        },
+        'click .remove': function (e, value, row, index) {
+            window.alert("待开发");
+            //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
+        }
+    };
+
+    function init_table() {
+        $('#table').bootstrapTable({
+            url: '/lijing_honorinfo/jsondata',  // 请求数据源的路由
+            method: 'get',
+            dataType: "json",
+            theadClasses: "thead-light",//标题样式
+            pagination: true, //前端处理分页
+            singleSelect: false,//是否只能单选
+            search: false, //显示搜索框，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true,
+            pageNumber: 1, //初始化加载第10页，默认第一页
+            pageSize: 10, //每页的记录行数（*）
+            pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
+            smartDisplay: false,
+            strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
+            showColumns: true, //显示内容列下拉框
+            showRefresh: true, //显示刷新按钮
+            minimumCountColumns: 2, //当列数小于此值时，将隐藏内容列下拉框
+            clickToSelect: true, //设置true， 将在点击某行时，自动勾选rediobox 和 checkbox
+            uniqueId: "id", //每一行的唯一标识，一般为主键列
+            showToggle: true, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false,                   //是否显示父子表
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            columns: [
+                //{
+                //    checkbox: false  //第一列显示复选框
+                //},
+                {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
+                    field: 'id',
+                    title: '编号',
+                    align: 'center',  //对齐方式，居中 
+                }, {
+                    field: 'name',
+                    title: '姓名',
+                    align: 'center'
+                }, {
+                    field: 'num',
+                    title: '荣誉项',
+                    align: 'center',
+
+                }, {
+                    field: 'operations',
+                    title: '操作',
+                    align: 'center',
+                    clickToSelect: false,
+                    events: window.operateEvents,
+                    formatter: operateFormatter
+                }
+            ],
+            //onDblClickRow: function (row, $element, field) {},
+        });
+
+    };
+    init_table();
+
+    function show_import_modal() {
+        $('#importModal').modal('show');
+    };
+
+    function show_add_modal() {
+        document.getElementById("detail_modal_title").innerHTML = "荣誉档案";
+        var honor_list = document.getElementById('honor_list');
+        honor_list.innerHTML = '';
+
+        document.getElementById("honor_add").style.display = "block";
+        $("#detailModal").modal("show");
+    };
+
+    function update_honor() {
+        var datas = {};
+        var item = ['school_name', 'honor_time', 'get_time', 'honor_unit', 'honor_name', 'honor_grade', 'honor_number', 'honor_remark']
+
+        datas["person_id"] = update_person_id;
+        datas['update_number'] = update_honor_number;
+        for (var i = 0; i < update_honor_number; i++) {
+            for (var j = 0; j < item.length; j++) {
+                datas[item[j] + i] = document.getElementById(item[j] + i).value;
+            }
+        }
+
+        $.getJSON($SCRIPT_ROOT + '/lijing_honorinfo/update_honor', datas, function (return_data) {
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            $("#detailModal").modal("hide");
+            $("#table").bootstrapTable('refresh');
+        });
+    };
+
+
+    function show_origin_table() {
+        flag_search = false;
+
+        $('#table').bootstrapTable("destroy");
+        init_table();
+        document.getElementById("select_year").disabled = false;
+        document.getElementById("search_string").value = "";
+        document.getElementById("success_info").style.display = "none";
+        document.getElementById("origin_button").style.display = "none";
+        //$('#export_button').addClass('disabled');
+    };
+
+    function showFilename(file) {
+        $("#filename_label").html(file.name);
+    };
+
+    $("#select_year").change(function () {
+        //要触发的事件
+        document.getElementById('jumbotron_string').innerHTML = this.value + '年-教师基本信息';
+
+        datas = {};
+        datas['year'] = this.value;
+        $.getJSON($SCRIPT_ROOT + '/lijing_honorinfo/set_year', datas, function (return_data) {
+            $("#table").bootstrapTable('refresh');
+        });
+
+    });
+
+</script>
+
+
+
+{% endblock %}

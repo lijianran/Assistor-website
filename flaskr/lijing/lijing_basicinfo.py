@@ -5,6 +5,7 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
+
 from flaskr.db import get_db, get_lijing_db
 
 from random import choice
@@ -15,27 +16,16 @@ import json
 import datetime
 from pypinyin import lazy_pinyin
 
-bp = Blueprint('lijing', __name__, url_prefix='/lijing')
-
-item_name_dict = {
-    'person_name': '姓名', "gender": '性别', "id_number": '身份证号', "phone": '联系电话', "political_status": '政治面貌', "time_Party": '入党时间', "time_work": '参加工作时间', "address": '家庭住址', "resume": '个人简历',
-    "edu_start": '第一学历', "time_edu_start": '第一学历毕业时间', "school_edu_start": '第一学历毕业学校', "major_edu_start": '第一学历专业', "edu_end": '最高学历', "time_edu_end": '最高学历毕业时间', "school_edu_end": '最高学历毕业学校', "major_edu_end": '最高学历专业',
-    "skill_title": '专业技术职称', "time_skill": '职称取得时间', "skill_unit": '职称发证单位', "skill_number": '发证文件批号',
-    "time_school": '调入大集中学时间', "work_kind": '用工性质', "job_post": '工作岗位', "time_retire": '退休时间'
-}
+bp = Blueprint('lijing_basicinfo', __name__, url_prefix='/lijing_basicinfo')
 
 
 @bp.route('/hello')
 def hello():
-    return render_template('lijing/hello.html')
-
-
-@bp.route('/basicInfo')
-def basicInfo():
     db = get_lijing_db()
+
     year_data = db.execute('select year from year_list').fetchall()
-    year_list = []
     year_new = datetime.datetime.now().year
+    year_list = []
     if len(year_data) == 0:
         year_list = ['暂无数据']
     else:
@@ -44,15 +34,8 @@ def basicInfo():
         year_new = int(year_list[0]) + 1
         # if 'year_current' not in session:
         session['year_current'] = year_list[0]
+
     return render_template('lijing/basicInfo.html', year_list=year_list, year_new=year_new)
-
-
-@bp.route('/set_year')
-def set_year():
-    year = request.args.get('year')
-    session['year_current'] = year
-    msg = 'success'
-    return {'msg': msg}
 
 
 @bp.route('/jsondata', methods=('GET', 'POST'))
@@ -87,39 +70,6 @@ def jsondata():
         # 前端根本不需要指定total和rows这俩参数，他们已经封装在了bootstrap table里了
 
 
-@bp.route('/search', methods=('GET', 'POST'))
-def search():
-    person_id = request.args.get('id', 0, type=int)
-    db = get_lijing_db()
-
-    data = {}
-    year = session['year_current']
-    person = 'person_'+year
-    education = 'education_'+year
-    skill = 'skill_'+year
-    workinfo = 'workinfo_'+year
-    result = db.execute('select person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume,\
-        edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,\
-        skill_title,time_skill,skill_unit,skill_number,\
-        time_school,work_kind,job_post,time_retire \
-        from '+person+' join '+education+', '+skill+', '+workinfo+' \
-        on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and '+person+'.person_id = '+workinfo+'.person_id \
-        where '+person+'.person_id = ?', (person_id,)).fetchall()
-
-    db.commit()
-    row = result[0]
-
-    item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-            "skill_title", "time_skill", "skill_unit", "skill_number",
-            "time_school", "work_kind", "job_post", "time_retire"]
-
-    for i in range(len(row)):
-        data[item[i]] = row[item[i]]
-
-    return data
-
-
 @bp.route('/importData', methods=('GET', 'POST'))
 def importData():
     if request.method == 'POST':
@@ -143,13 +93,13 @@ def importData():
 
         year_data = db.execute('select year from year_list').fetchall()
         year_list = []
-        year_new = datetime.datetime.now().year
+        # year_new = datetime.datetime.now().year
         for year in year_data:
             year_list.insert(0, year['year'])
 
         if year_select not in year_list:
-            db.execute('insert into year_list (year, basicinfo, workinfo) values (?,?,?)',
-                       (year_select, 0, 0,))
+            db.execute('insert into year_list (year, basicinfo, workinfo, honorinfo) values (?,?,?,?)',
+                       (year_select, 0, 0, 0, ))
             for sql in sql_create:
                 db.execute(sql)
             db.commit()
@@ -168,19 +118,21 @@ def importData():
             print("总行数：" + str(table.nrows))
             print("总列数：" + str(table.ncols))
 
+            # 找到标题
             dict_title = {
                 '姓名': 0, '性别': 1, '身份证号': 2, '联系电话': 3, '政治面貌': 4, '入党时间': 5, '参加工作时间': 6, '家庭住址': 7, '工作简历': 8,
                 '第一学历': 9, '第一学历毕业时间': 10, '第一学历毕业学校': 11, '第一学历专业': 12, '最高学历': 13, '最高学历毕业时间': 14, '最高学历毕业学校': 15, '最高学历专业': 16,
                 '专业技术职称': 17, '取得时间': 18, '发证单位': 19, '发证文件批号': 20,
                 '调入大集中学时间': 21, '用工性质': 22, '工作岗位': 23, '退休时间': 24
             }
-            rowVale = table.row_values(0)
+            row_title = table.row_values(0)
             title_id = [-1 for i in range(25)]
-            for i in range(0, len(rowVale)):
-                title_name = rowVale[i]
+            for i in range(0, len(row_title)):
+                title_name = row_title[i]
                 if title_name in dict_title:
                     title_id[dict_title[title_name]] = i
 
+            # 导入数据
             for i in range(1, table.nrows):
                 row_value = table.row_values(i)
                 insert_data = [0 for i in range(25)]
@@ -188,9 +140,10 @@ def importData():
                     if title_id[j] == -1:
                         insert_data[j] = '暂无'
                     else:
-                        insert_data[j] = row_value[title_id[j]]
-                        if type(insert_data) != 'str':
-                            insert_data[j] = str(insert_data[j])
+                        insert_data[j] = float_int_string(
+                            row_value[title_id[j]])
+                        # if type(insert_data[j]) != 'str':
+                        #     insert_data[j] = str(insert_data[j])
                         if len(insert_data[j]) == 0:
                             insert_data[j] = '暂无'
 
@@ -222,77 +175,43 @@ def importData():
 
             os.remove(upload_path)
 
-            return redirect(url_for('lijing.basicInfo'))
+            return redirect(url_for('lijing_basicinfo.hello'))
         else:
             error = '请导入xlsx格式的文件'
             flash(error)
-            return redirect(url_for('lijing.basicInfo'))
+            return redirect(url_for('lijing_basicinfo.hello'))
 
 
-@bp.route('/exportData', methods=('GET', 'POST'))
-def exportData():
+@bp.route('/search', methods=('GET', 'POST'))
+def search():
+    person_id = request.args.get('id', 0, type=int)
     db = get_lijing_db()
 
-    export_data = [0 for i in range(25)]
-    item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-            "skill_title", "time_skill", "skill_unit", "skill_number",
-            "time_school", "work_kind", "job_post", "time_retire"]
-
-    for i in range(0, len(item)):
-        export_data[i] = request.args.get(item[i])
-
-    export_item = []
-    for i in range(0, len(item)):
-        if export_data[i] == 'true':
-            export_item.append(item[i])
-
-    sql_search = 'select '
-    for item in export_item:
-        sql_search = sql_search + item + ','
-    sql_search = sql_search[:len(sql_search)-1]
-
+    data = {}
     year = session['year_current']
     person = 'person_'+year
     education = 'education_'+year
     skill = 'skill_'+year
     workinfo = 'workinfo_'+year
-    sql_search = sql_search + ' from '+person+' join '+education+', '+skill+', '+workinfo+' on '+person+'.person_id = ' + \
-        education+'.person_id and '+person+'.person_id = '+skill + '.person_id and '+person+'.person_id = '+workinfo+'.person_id \
-        where '+person+'.person_id = ?'
+    result = db.execute('select person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume,\
+        edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,\
+        skill_title,time_skill,skill_unit,skill_number,\
+        time_school,work_kind,job_post,time_retire \
+        from '+person+' join '+education+', '+skill+', '+workinfo+' \
+        on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and '+person+'.person_id = '+workinfo+'.person_id \
+        where '+person+'.person_id = ?', (person_id,)).fetchall()
 
-    flag_search = request.args.get('flag_search')
-    id_list = []
-    if flag_search == 'true':
-        id_list = request.args.getlist("id_list[]")
-    else:
-        person_data = db.execute('select person_id from '+person).fetchall()
-        for i in person_data:
-            id_list.append(i['person_id'])
+    row = result[0]
 
-    table_data = []
-    for i in id_list:
-        result = db.execute(sql_search, (int(i), )).fetchone()
-        row = []
-        for item in export_item:
-            row.append(result[item])
-        table_data.append(row)
+    item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"]
 
-    workbook = xlsxwriter.Workbook(
-        'flaskr\\static\\downloads\\exportData.xlsx')
-    worksheet = workbook.add_worksheet('Sheet1')
-    for i in range(len(export_item)):
-        worksheet.write(0, i, item_name_dict[export_item[i]])
-    for i in range(len(id_list)):
-        for j in range(len(export_item)):
-            worksheet.write(i+1, j, table_data[i][j])
+    for i in range(len(row)):
+        data[item[i]] = row[item[i]]
 
-    workbook.close()
-    # print(os.path.join(os.path.dirname(
-    #     __file__), 'static', 'downloads', 'exportData.xlsx'))
-    msg = '成功导出'+str(len(id_list))+'条信息'
-
-    return {'msg': msg, 'filename': 'exportData.xlsx'}
+    return jsonify(data)
 
 
 @bp.route('/add_person', methods=('GET', 'POST'))
@@ -346,23 +265,6 @@ def add_person():
     return {'msg': msg}
 
 
-@bp.route('/download_excel_file/<string:excel_filename>')
-def download_excel_file(excel_filename):
-    """
-    下载src_file目录下面的文件
-    eg：下载当前目录下面的123.tar 文件，eg:http://localhost:5000/download?fileId=123.tar
-    :return:
-    """
-    # file_name = request.args.get('fileId')
-    file_path = os.path.join(os.path.dirname(
-        __file__), '..\\static', 'downloads', excel_filename)
-    print(file_path)
-    if os.path.isfile(file_path):
-        return send_file(file_path, as_attachment=True)
-    else:
-        return "The downloaded file does not exist"
-
-
 @bp.route('/update_person', methods=('GET', 'POST'))
 def update_person():
     update_data = [0 for i in range(25)]
@@ -413,6 +315,96 @@ def update_person():
     return {'msg': msg}
 
 
+@bp.route('/exportData', methods=('GET', 'POST'))
+def exportData():
+    db = get_lijing_db()
+
+    export_data = [0 for i in range(25)]
+    item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"]
+
+    for i in range(0, len(item)):
+        export_data[i] = request.args.get(item[i])
+
+    export_item = []
+    for i in range(0, len(item)):
+        if export_data[i] == 'true':
+            export_item.append(item[i])
+
+    sql_search = 'select '
+    for item in export_item:
+        sql_search = sql_search + item + ','
+    sql_search = sql_search[:len(sql_search)-1]
+
+    year = session['year_current']
+    person = 'person_'+year
+    education = 'education_'+year
+    skill = 'skill_'+year
+    workinfo = 'workinfo_'+year
+    sql_search = sql_search + ' from '+person+' join '+education+', '+skill+', '+workinfo+' on '+person+'.person_id = ' + \
+        education+'.person_id and '+person+'.person_id = '+skill + '.person_id and '+person+'.person_id = '+workinfo+'.person_id \
+        where '+person+'.person_id = ?'
+
+    flag_search = request.args.get('flag_search')
+    id_list = []
+    if flag_search == 'true':
+        id_list = request.args.getlist("id_list[]")
+    else:
+        person_data = db.execute('select person_id from '+person).fetchall()
+        for i in person_data:
+            id_list.append(i['person_id'])
+
+    table_data = []
+    for i in id_list:
+        result = db.execute(sql_search, (int(i), )).fetchone()
+        row = []
+        for item in export_item:
+            row.append(result[item])
+        table_data.append(row)
+
+    item_name_dict = {
+        'person_name': '姓名', "gender": '性别', "id_number": '身份证号', "phone": '联系电话', "political_status": '政治面貌', "time_Party": '入党时间', "time_work": '参加工作时间', "address": '家庭住址', "resume": '个人简历',
+        "edu_start": '第一学历', "time_edu_start": '第一学历毕业时间', "school_edu_start": '第一学历毕业学校', "major_edu_start": '第一学历专业', "edu_end": '最高学历', "time_edu_end": '最高学历毕业时间', "school_edu_end": '最高学历毕业学校', "major_edu_end": '最高学历专业',
+        "skill_title": '专业技术职称', "time_skill": '职称取得时间', "skill_unit": '职称发证单位', "skill_number": '发证文件批号',
+        "time_school": '调入大集中学时间', "work_kind": '用工性质', "job_post": '工作岗位', "time_retire": '退休时间'
+    }
+
+    workbook = xlsxwriter.Workbook(
+        'flaskr\\static\\downloads\\exportData.xlsx')
+    worksheet = workbook.add_worksheet('Sheet1')
+    for i in range(len(export_item)):
+        worksheet.write(0, i, item_name_dict[export_item[i]])
+    for i in range(len(id_list)):
+        for j in range(len(export_item)):
+            worksheet.write(i+1, j, table_data[i][j])
+
+    workbook.close()
+    # print(os.path.join(os.path.dirname(
+    #     __file__), 'static', 'downloads', 'exportData.xlsx'))
+    msg = '成功导出'+str(len(id_list))+'条信息'
+
+    return {'msg': msg, 'filename': 'exportData.xlsx'}
+
+
+@bp.route('/download_excel_file/<string:excel_filename>')
+def download_excel_file(excel_filename):
+    """
+    下载src_file目录下面的文件
+    eg：下载当前目录下面的123.tar 文件，eg:http://localhost:5000/download?fileId=123.tar
+    :return:
+    """
+    # file_name = request.args.get('fileId')
+    file_path = os.path.join(os.path.dirname(
+        __file__), '..\\static', 'downloads', excel_filename)
+    print(file_path)
+    if os.path.isfile(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        return "The downloaded file does not exist"
+
+
 @bp.route('/search_person', methods=('GET', 'POST'))
 def seach_person():
     search_item = request.args.get('search_item', '暂无', type=str)
@@ -449,3 +441,21 @@ def seach_person():
 
     return jsonify({'msg': msg, 'total': len(data), 'rows': data})
 
+
+@bp.route('/set_year')
+def set_year():
+    year = request.args.get('year')
+    session['year_current'] = year
+    msg = 'success'
+    return {'msg': msg}
+
+
+def float_int_string(float_num):
+    if type(float_num) != str:
+        float_num = str(int(float_num))
+    return float_num
+
+
+@bp.route('/lijing_index')
+def lijing_index():
+    return render_template('lijing/hello.html')

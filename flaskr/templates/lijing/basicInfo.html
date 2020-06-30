@@ -9,9 +9,10 @@
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
         data-target="#demo">教师管理</a>
     <div class="list-group collapse show" id="demo">
-        <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action active">1.教师基本信息</a>
+        <a href="{{ url_for('lijing_basicinfo.hello') }}"
+            class="list-group-item list-group-item-action active">1.教师基本信息</a>
         <a href="{{ url_for('lijing_workinfo.hello') }}" class="list-group-item list-group-item-action">2.教师业务档案</a>
-        <a href="#" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
+        <a href="{{ url_for('lijing_honorinfo.hello') }}" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
     </div>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
@@ -20,10 +21,14 @@
 
 {% block content %}
 <div class="jumbotron">
-    <h1>教师基本信息</h1>
+    <h1 id="jumbotron_string">教师基本信息</h1>
 </div>
 
-<div class="row" id="search-bar">
+<div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
+    <strong id="success_msg"></strong>
+</div>
+
+<div class="row" id="search_bar">
     <div class="input-group mb-3 col-md-3">
         <div class="input-group-prepend">
             <label class="input-group-text" for="select_year">年份</label>
@@ -38,7 +43,6 @@
         <div class="input-group-prepend">
             <select class="custom-select" id="search_select">
             </select>
-
         </div>
         <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
         <div class="input-group-append">
@@ -48,24 +52,15 @@
 </div>
 
 <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
-    <!--     
-    <div class="btn-group mr-2" role="group" aria-label="First group">
-        <button type="button" class="btn btn-secondary" onclick="add_data()">添加</button>
-    </div>
-    <div class="btn-group mr-2" role="group" aria-label="Second group">
-        <button type="button" class="btn btn-secondary" onclick="import_data()">导入</button>
-    </div> -->
-
     <div class="dropdown mr-2">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             功能
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="javascript:void(0)" onclick="add_data()">添加</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="import_data()">导入</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="export_data()"
-                id="export_button">导出</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_add_modal()">添加</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="export_data()" id="export_button">导出</a>
         </div>
     </div>
     <div class="mr-2">
@@ -74,19 +69,15 @@
     </div>
 </div>
 
-<div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
-    <strong id="success_msg"></strong>
-</div>
-
 <table id="table" class="table-striped" data-sortable="true"></table>
 
-<div class="modal fade" id="myModal">
+<div class="modal fade" id="detailModal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
             <!-- 模态框头部 -->
             <div class="modal-header">
-                <h4 class="modal-title" id="modal-title">基本信息</h4>
+                <h4 class="modal-title" id="detail_modal_title">基本信息</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
 
@@ -237,8 +228,7 @@
 
             <!-- 模态框主体 -->
             <div class="modal-body">
-
-                <form action="{{ url_for('lijing.importData') }}" enctype='multipart/form-Data' method='POST'>
+                <form action="{{ url_for('lijing_basicinfo.importData') }}" enctype='multipart/form-Data' method='POST'>
                     <div class="alert alert-primary" role="alert">
                         请选择要导入的年份和Excel表格(.xlsx)
                     </div>
@@ -247,7 +237,6 @@
                             <label class="input-group-text" for="inputGroupSelect01">年份</label>
                         </div>
                         <select class="custom-select" id="inputGroupSelect01" name="year_select">
-
                             {% for year in year_list %}
                             {% if year != "暂无数据" %}
                             <option value="{{ year }}">{{ year }}</option>
@@ -298,7 +287,7 @@
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
-                <button type="button" id="add_person" class="btn btn-primary" onclick="export_table()">导出</button>
+                <button type="button" id="export_table" class="btn btn-primary" onclick="export_table()">导出</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
@@ -374,11 +363,9 @@
 
     window.operateEvents = {
         'click .detail': function (e, value, row, index) {
-            document.getElementById("modal-title").innerHTML = row.name + "--基本信息";
+            document.getElementById("detail_modal_title").innerHTML = row.name + "--基本信息";
 
-            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
-                id: row.id
-            }, function (data) {
+            $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search', { id: row.id }, function (data) {
                 var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
                     "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
                     "skill_title", "time_skill", "skill_unit", "skill_number",
@@ -389,19 +376,17 @@
                 }
 
             });
-            $("#myModal input").attr("readOnly", true);
+            $("#detailModal input").attr("readOnly", true);
             $("#resume").attr("readOnly", true);
             document.getElementById("add_person").style.display = "none";
             document.getElementById("update_person").style.display = "none";
-            $('#myModal').modal('show');
+            $('#detailModal').modal('show');
 
         },
         'click .update': function (e, value, row, index) {
             update_person_id = row.id;
 
-            $.getJSON($SCRIPT_ROOT + '/lijing/search', {
-                id: row.id
-            }, function (data) {
+            $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search', { id: row.id }, function (data) {
                 var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
                     "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
                     "skill_title", "time_skill", "skill_unit", "skill_number",
@@ -413,22 +398,22 @@
 
             document.getElementById("update_person").style.display = "block";
             document.getElementById("add_person").style.display = "none";
-            document.getElementById("modal-title").innerHTML = '修改教师"' + row.name + '"的基本信息';
-            $("#myModal input").attr("readOnly", false);
+            document.getElementById("detail_modal_title").innerHTML = '修改教师"' + row.name + '"的基本信息';
+            $("#detailModal input").attr("readOnly", false);
             $("#resume").attr("readOnly", false);
-            $("#myModal").modal("show");
+            $("#detailModal").modal("show");
 
             //window.alert('You click like action, row: ' + JSON.stringify(row))
         },
         'click .remove': function (e, value, row, index) {
-            window.alert("hello");
+            window.alert("待开发");
             //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
         }
     }
 
     function init_table() {
         $('#table').bootstrapTable({
-            url: '/lijing/jsondata',  // 请求数据源的路由
+            url: '/lijing_basicinfo/jsondata',  // 请求数据源的路由
             method: 'get',
             dataType: "json",
             theadClasses: "thead-light",//标题样式
@@ -484,19 +469,11 @@
     }
     init_table();
 
-    function show_origin_table() {
-        flag_search = false;
+    function show_import_modal() {
+        $('#importModal').modal('show');
+    };
 
-        $('#table').bootstrapTable("destroy");
-        init_table();
-        document.getElementById("select_year").disabled = false;
-        document.getElementById("search_string").value = "";
-        document.getElementById("success_info").style.display = "none";
-        document.getElementById("origin_button").style.display = "none";
-        //$('#export_button').addClass('disabled');
-    }
-
-    function add_data() {
+    function show_add_modal() {
         var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
             "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
             "skill_title", "time_skill", "skill_unit", "skill_number",
@@ -507,12 +484,71 @@
 
         document.getElementById("add_person").style.display = "block";
         document.getElementById("update_person").style.display = "none";
-        document.getElementById("modal-title").innerHTML = "新增教师基本信息";
-        $("#myModal input").attr("readOnly", false);
+        document.getElementById("detail_modal_title").innerHTML = "新增教师基本信息";
+        $("#detailModal input").attr("readOnly", false);
         $("#resume").attr("readOnly", false);
-        $("#myModal").modal("show");
+        $("#detailModal").modal("show");
 
     };
+
+    function add_person() {
+        if (test_data("add") != 0) {
+            window.alert("姓名和身份证为必填项！");
+            return;
+        }
+        var datas = {};
+        var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"];
+
+        for (i = 0; i < item.length; i++) {
+            datas[item[i]] = document.getElementById(item[i]).value;
+        }
+
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/add_person', datas, function (return_data) {
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            $("#detailModal").modal("hide");
+        });
+
+    };
+
+    function update_person() {
+        var datas = {};
+        var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
+            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
+            "skill_title", "time_skill", "skill_unit", "skill_number",
+            "time_school", "work_kind", "job_post", "time_retire"];
+
+        datas["person_id"] = update_person_id;
+        for (var i = 0; i < item.length; i++) {
+            datas[item[i]] = document.getElementById(item[i]).value;
+        }
+
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/update_person', datas, function (return_data) {
+            document.getElementById("success_info").style.display = "block";
+            document.getElementById("success_msg").innerHTML = return_data.msg;
+            $("#detailModal").modal("hide");
+            $("#table").bootstrapTable('refresh');
+        });
+    };
+
+
+
+    function show_origin_table() {
+        flag_search = false;
+
+        $('#table').bootstrapTable("destroy");
+        init_table();
+        document.getElementById("select_year").disabled = false;
+        document.getElementById("search_string").value = "";
+        document.getElementById("success_info").style.display = "none";
+        document.getElementById("origin_button").style.display = "none";
+        //$('#export_button').addClass('disabled');
+    };
+
+
 
     function test_data(code) {
         if (code == "add") {
@@ -533,48 +569,8 @@
         return 0;
     };
 
-    function add_person() {
-        if (test_data("add") != 0) {
-            window.alert("姓名和身份证为必填项！");
-            return;
-        }
-        var datas = {};
-        var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-            "skill_title", "time_skill", "skill_unit", "skill_number",
-            "time_school", "work_kind", "job_post", "time_retire"];
 
-        for (i = 0; i < item.length; i++) {
-            datas[item[i]] = document.getElementById(item[i]).value;
-        }
 
-        $.getJSON($SCRIPT_ROOT + '/lijing/add_person', datas, function (return_data) {
-            document.getElementById("success_info").style.display = "block";
-            document.getElementById("success_msg").innerHTML = return_data.msg;
-            $("#myModal").modal("hide");
-        });
-
-    };
-
-    function update_person() {
-        var datas = {};
-        var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-            "skill_title", "time_skill", "skill_unit", "skill_number",
-            "time_school", "work_kind", "job_post", "time_retire"];
-
-        datas["person_id"] = update_person_id;
-        for (i = 0; i < item.length; i++) {
-            datas[item[i]] = document.getElementById(item[i]).value;
-        }
-
-        $.getJSON($SCRIPT_ROOT + '/lijing/update_data', datas, function (return_data) {
-            document.getElementById("success_info").style.display = "block";
-            document.getElementById("success_msg").innerHTML = return_data.msg;
-            $("#myModal").modal("hide");
-            $("#table").bootstrapTable('refresh');
-        });
-    };
 
     function search_person() {
         if (test_data("search") != 0) {
@@ -591,7 +587,7 @@
         datas["search_item"] = val;
         datas["search_string"] = search_string;
 
-        $.getJSON($SCRIPT_ROOT + '/lijing/search_person', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search_person', datas, function (return_data) {
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
 
@@ -600,7 +596,7 @@
             //$('#export_button').removeClass('disabled');
             $("#table").bootstrapTable("destroy");
             $('#table').bootstrapTable({
-                //url: '/lijing/jsondata',  // 请求数据源的路由
+                //url: '/lijing_basicinfo/jsondata',  // 请求数据源的路由
                 data: return_data.rows,
                 //method: 'get',
                 dataType: "json",
@@ -657,9 +653,7 @@
         });
     }
 
-    function import_data() {
-        $('#importModal').modal('show');
-    };
+
 
     function export_data() {
         $('#exportModal').modal('show');
@@ -692,13 +686,13 @@
         }
         datas["id_list"] = id_list;
 
-        $.getJSON($SCRIPT_ROOT + '/lijing/exportData', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/exportData', datas, function (return_data) {
             $("#exportModal").modal("hide");
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
-            //window.alert('/lijing/download_excel_file/' + return_data.filename)
-            window.location.href = '/lijing/download_excel_file/' + return_data.filename;
-            //$("#myModal").modal("hide");
+            //window.alert('/lijing_basicinfo/download_excel_file/' + return_data.filename)
+            window.location.href = '/lijing_basicinfo/download_excel_file/' + return_data.filename;
+            //$("#detailModal").modal("hide");
             //$("#table").bootstrapTable('refresh');
         });
     }
@@ -709,9 +703,11 @@
 
     $("#select_year").change(function () {
         //要触发的事件
+        document.getElementById('jumbotron_string').innerHTML = this.value + '年-教师基本信息';
+
         datas = {};
         datas['year'] = this.value;
-        $.getJSON($SCRIPT_ROOT + '/lijing/set_year', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/set_year', datas, function (return_data) {
             $("#table").bootstrapTable('refresh');
         });
 

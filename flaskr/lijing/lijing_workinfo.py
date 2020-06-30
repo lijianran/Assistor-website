@@ -23,7 +23,7 @@ bp = Blueprint('lijing_workinfo', __name__, url_prefix='/lijing_workinfo')
 def hello():
     db = get_lijing_db()
 
-    year_data = db.execute('select year, workinfo from year_list').fetchall()
+    year_data = db.execute('select year from year_list').fetchall()
     year_list = []
     if len(year_data) == 0:
         year_list = ['暂无数据']
@@ -273,7 +273,7 @@ def readfile():
 
 
 def float_int_string(float_num):
-    if type(float_num) == float:
+    if type(float_num) != str:
         float_num = str(int(float_num))
     return float_num
 
@@ -320,14 +320,15 @@ def importData():
 
         for i in range(1, table.nrows):
             row = table.row_values(i)
-            person_name = row[update_item['person_name']]
+            person_name = float_int_string(row[update_item['person_name']])
             if person_name not in person_name_list:
                 return jsonify({'msg': '教师姓名：“'+person_name+'” 不存在'})
                 # 表中有不存在基本信息的教师
             person_id = person_id_dict[person_name]
 
             if 'lesson_number' in update_item:
-                lesson_number = row[update_item['lesson_number']]
+                lesson_number = float_int_string(
+                    row[update_item['lesson_number']])
                 if db.execute('select workload_id from workload_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
                     db.execute('insert into workload_'+year_select +
                                ' (lesson_number, year_result, person_id) values (?,?,?)', (lesson_number, '', person_id, ))
@@ -336,7 +337,7 @@ def importData():
                                ' set lesson_number = ? where person_id = ?', (lesson_number, person_id, ))
 
             if 'year_result' in update_item:
-                year_result = row[update_item['year_result']]
+                year_result = float_int_string(row[update_item['year_result']])
                 if db.execute('select workload_id from workload_'+year_select+' where person_id = ?', (person_id, )).fetchone() is None:
                     db.execute('insert into workload_'+year_select +
                                ' (lesson_number, year_result, person_id) values (?,?,?)', ('', year_result, person_id, ))
@@ -345,7 +346,7 @@ def importData():
                                ' set year_result = ? where person_id = ?', (year_result, person_id, ))
 
             if 'school_name' in update_item:
-                school_name = row[update_item['school_name']]
+                school_name = float_int_string(row[update_item['school_name']])
                 school_id_data = db.execute(
                     'select school_id from school_'+year_select+' where school_name = ?', (school_name, )).fetchone()
                 if school_id_data is None:
@@ -356,7 +357,7 @@ def importData():
                            ' set school_id = ? where person_id = ?', (school_id, person_id, ))
 
             if 'job_name' in update_item:
-                job_name = row[update_item['job_name']]
+                job_name = float_int_string(row[update_item['job_name']])
                 if job_name == '':
                     job_name = '无'
                 db.execute('update job_'+year_select +

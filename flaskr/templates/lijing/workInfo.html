@@ -9,10 +9,10 @@
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
         data-target="#demo">教师管理</a>
     <div class="list-group collapse show" id="demo">
-        <a href="{{ url_for('lijing.basicInfo') }}" class="list-group-item list-group-item-action">1.教师基本信息</a>
+        <a href="{{ url_for('lijing_basicinfo.hello') }}" class="list-group-item list-group-item-action">1.教师基本信息</a>
         <a href="{{ url_for('lijing_workinfo.hello') }}"
             class="list-group-item list-group-item-action active">2.教师业务档案</a>
-        <a href="#" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
+        <a href="{{ url_for('lijing_honorinfo.hello') }}" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
     </div>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
@@ -22,34 +22,14 @@
 
 {% block content %}
 <div class="jumbotron">
-    <h1>教师业务档案</h1>
+    <h1 id="jumbotron_string">教师业务档案</h1>
 </div>
-
-<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
-    <div class="dropdown mr-2">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false">
-            功能
-        </button>
-        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="javascript:void(0)" onclick="show_school_class()">分校班级</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入数据</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="show_export_data()"
-                id="export_button">导出数据</a>
-        </div>
-    </div>
-    <div class="mr-2">
-        <button id="origin_button" type="button" class="btn btn-secondary" onclick="show_origin_table()"
-            style="display: none;">查看原表</button>
-    </div>
-</div>
-
 
 <div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
     <strong id="success_msg"></strong>
 </div>
 
-<div class="row" id="search-bar">
+<div class="row" id="search_bar">
     <div class="input-group mb-3 col-md-3">
         <div class="input-group-prepend">
             <label class="input-group-text" for="select_year">年份</label>
@@ -81,15 +61,33 @@
     </div>
 </div>
 
+<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups" id="toolbar">
+    <div class="dropdown mr-2">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            功能
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_school_class()">分校班级</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入数据</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_export_data()" id="export_button">导出数据</a>
+        </div>
+    </div>
+    <div class="mr-2">
+        <button id="origin_button" type="button" class="btn btn-secondary" onclick="show_origin_table()"
+            style="display: none;">查看原表</button>
+    </div>
+</div>
+
 <table id="table" class="table-striped" data-sortable="true"></table>
 
-<div class="modal fade" id="myModal">
+<div class="modal fade" id="detailModal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
             <!-- 模态框头部 -->
             <div class="modal-header">
-                <h4 class="modal-title" id="modal-title">业务档案</h4>
+                <h4 class="modal-title" id="detail_modal_title">业务档案</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
 
@@ -239,7 +237,7 @@
 </div>
 
 <div class="modal fade" id="importModal">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
             <!-- 模态框头部 -->
@@ -391,7 +389,7 @@
 
     window.operateEvents = {
         'click .detail': function (e, value, row, index) {
-            document.getElementById("modal-title").innerHTML = row.name + "--业务档案";
+            document.getElementById("detail_modal_title").innerHTML = row.name + "--业务档案";
 
             $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/search', { id: row.id }, function (datas) {
                 var item = ['person_name', 'school_name', 'job_name', 'lesson_number', 'year_result', 'class_master'];
@@ -402,7 +400,7 @@
                 var rank_item = ['subject', 'class_id', 'rank_up_school', 'rank_up_country', 'rank_down_school', 'rank_down_country']
                 var title_item = ['任教班级', '任教科目', '上学期全校排名', '上学期全县排名', '下学期全校排名', '下学期全县排名']
                 var rank = datas['rank'];
-                rank_form = document.getElementById('rank_form');
+                var rank_form = document.getElementById('rank_form');
                 rank_form.innerHTML = '';
 
                 for (var i = 0; i < rank.length; i++) {
@@ -429,13 +427,13 @@
                     rank_form.appendChild(row);
                 }
             });
-            $("#myModal input").attr("readOnly", true);
+            $("#detailModal input").attr("readOnly", true);
             document.getElementById("update_data").style.display = "none";
-            $('#myModal').modal('show');
+            $('#detailModal').modal('show');
 
         },
         'click .update': function (e, value, row, index) {
-            document.getElementById("modal-title").innerHTML = '修改教师“' + row.name + '”的基本信息';
+            document.getElementById("detail_modal_title").innerHTML = '修改教师“' + row.name + '”的基本信息';
             update_person_id = row.id;
 
             $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/search', { id: row.id }, function (datas) {
@@ -505,15 +503,15 @@
                 rank_form.appendChild(row);
             });
 
-            $("#myModal input").attr("readOnly", false);
+            $("#detailModal input").attr("readOnly", false);
             $("#person_name").attr("readOnly", true);
             $("#class_master").attr("readOnly", true);
             document.getElementById("update_data").style.display = "block";
-            $("#myModal").modal("show");
+            $("#detailModal").modal("show");
 
         },
         'click .remove': function (e, value, row, index) {
-            window.alert("hello");
+            window.alert("待开发");
             //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
         }
     };
@@ -607,7 +605,7 @@
             document.getElementById("success_msg").innerHTML = return_data.msg;
             //window.alert('/lijing/download_excel_file/' + return_data.filename)
             window.location.href = '/lijing_workinfo/download_excel_file/' + return_data.filename;
-            //$("#myModal").modal("hide");
+            //$("#detailModal").modal("hide");
             //$("#table").bootstrapTable('refresh');
         });
 
@@ -916,9 +914,12 @@
 
     $("#select_year").change(function () {
         //要触发的事件
+
+        document.getElementById('jumbotron_string').innerHTML = this.value + '年-教师业务档案';
         datas = {};
         datas['year'] = this.value;
         $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/set_year', datas, function (return_data) {
+
             $("#table").bootstrapTable('refresh');
         });
 
@@ -951,7 +952,7 @@
             }
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
-            $("#myModal").modal("hide");
+            $("#detailModal").modal("hide");
             $("#table").bootstrapTable('refresh');
         });
     }

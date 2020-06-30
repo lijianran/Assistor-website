@@ -11,11 +11,14 @@ DROP TABLE IF EXISTS class;
 DROP TABLE IF EXISTS rank;
 DROP TABLE IF EXISTS workload;
 
+DROP TABLE IF EXISTS honor;
+
 CREATE TABLE year_list(
     year_id INTEGER PRIMARY KEY AUTOINCREMENT,
     year TEXT NOT NULL,
     basicinfo INTEGER NOT NULL,
-    workinfo INTEGER NOT NULL
+    workinfo INTEGER NOT NULL,
+    honorinfo INTEGER NOT NULL
 
 );
 
@@ -72,7 +75,6 @@ CREATE TABLE school(
     school_name TEXT NOT NULL
 );
 
-
 CREATE TABLE job(
     job_id INTEGER PRIMARY KEY AUTOINCREMENT,
     job_name TEXT NOT NULL,
@@ -108,6 +110,21 @@ CREATE TABLE workload(
     workload_id INTEGER PRIMARY KEY AUTOINCREMENT,
     lesson_number TEXT NOT NULL,
     year_result TEXT NOT NULL,
-    person_id TEXT NOT NULL,
+    person_id INTEGER NOT NULL,
+    FOREIGN KEY(person_id) REFERENCES person(person_id)
+);
+
+
+CREATE TABLE honor(
+    honor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id INTEGER NOT NULL,
+    school_name TEXT NOT NULL,
+    honor_time TEXT NOT NULL,
+    get_time TEXT NOT NULL,
+    honor_unit TEXT NOT NULL,
+    honor_name TEXT NOT NULL,
+    honor_grade TEXT NOT NULL,
+    honor_number TEXT NOT NULL,
+    honor_remark TEXT NOT NULL,
     FOREIGN KEY(person_id) REFERENCES person(person_id)
 );

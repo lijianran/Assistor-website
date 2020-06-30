@@ -4,6 +4,7 @@ from flask import Flask
 
 from datetime import timedelta
 
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -35,12 +36,15 @@ def create_app(test_config=None):
     from . import blog
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')
-    
+
     # from . import lijing
     from .lijing import lijing_basicinfo
     app.register_blueprint(lijing_basicinfo.bp)
 
     from .lijing import lijing_workinfo
     app.register_blueprint(lijing_workinfo.bp)
-    
+
+    from .lijing import lijing_honorinfo
+    app.register_blueprint(lijing_honorinfo.bp)
+
     return app

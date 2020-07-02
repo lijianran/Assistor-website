@@ -8,6 +8,8 @@ from flaskr.auth import login_required
 
 from flaskr.db import get_db, get_lijing_db
 
+from flaskr.lijing.lijing_index import float_int_string
+
 from random import choice
 import os
 import xlrd
@@ -20,6 +22,7 @@ bp = Blueprint('lijing_honorinfo', __name__, url_prefix='/lijing_honorinfo')
 
 
 @bp.route('/hello')
+@login_required
 def hello():
     db = get_lijing_db()
 
@@ -175,7 +178,6 @@ def importData():
 def search():
     person_id = request.args.get('id', 0, type=int)
     db = get_lijing_db()
-    print(person_id)
 
     data = []
     item = ['school_name', 'honor_time', 'get_time', 'honor_unit',
@@ -191,8 +193,8 @@ def search():
     return jsonify({'data_list': data})
 
 
-@bp.route('/add_honor', methods=('GET', 'POST'))
-def add_honor():
+@bp.route('/add_data', methods=('GET', 'POST'))
+def add_data():
     if request.method == 'POST':
         person_name = request.form['person_name']
 
@@ -224,78 +226,116 @@ def add_honor():
         return redirect(url_for('lijing_honorinfo.hello'))
 
 
-@bp.route('/update_honor', methods=('GET', 'POST'))
-def update_honor():
+@bp.route('/update_data', methods=('GET', 'POST'))
+def update_data():
 
     person_id = request.args.get('person_id')
-    update_number = int(request.args.get('update_number'))
+    update_number = request.args.get('update_number', type=int)
     print(person_id, update_number)
+    print(type(person_id), type(update_number))
 
-    item = ['school_name', 'honor_time', 'get_time', 'honor_unit', 'honor_name', 'honor_grade', 'honor_number', 'honor_remark']
+    item = ['school_name', 'honor_time', 'get_time', 'honor_unit',
+            'honor_name', 'honor_grade', 'honor_number', 'honor_remark']
     honor_data = []
     for i in range(update_number):
         honor = []
         for r in item:
             honor.append(request.args.get(r+str(i)))
         honor_data.append(honor)
+
+    db = get_lijing_db()
+    honor_id_data = db.execute('select honor_id from honor_' +
+                               session['year_current']+' where person_id = ?', (person_id, )).fetchall()
+    honor_id = []
+    for i in honor_id_data:
+        honor_id.append(i['honor_id'])
+    print(honor_id)
     print(honor_data)
-    # update_data = [0 for i in range(25)]
-    # item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-    #         "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-    #         "skill_title", "time_skill", "skill_unit", "skill_number",
-    #         "time_school", "work_kind", "job_post", "time_retire"]
 
-    # for i in range(0, len(item)):
-    #     update_data[i] = request.args.get(item[i], '暂无', type=str)
-    #     if update_data[i] == '':
-    #         update_data[i] = '暂无'
+    for i in range(update_number):
+        db.execute('update honor_'+session['year_current'] +
+                   ' set school_name = ?, honor_time = ?, get_time = ?, honor_unit = ?, honor_name = ?, honor_grade = ?, honor_number = ?, honor_remark = ? where honor_id = ?',
+                   (honor_data[i][0], honor_data[i][1], honor_data[i][2], honor_data[i][3], honor_data[i][4], honor_data[i][5], honor_data[i][6], honor_data[i][7], honor_id[i],))
+    db.commit()
 
-    # person_id = request.args.get("person_id", '暂无', type=str)
-    # print(update_data)
-    # print(person_id)
-
-    # db = get_lijing_db()
-    # sql_person = 'update person_' + \
-    #     session['year_current'] + \
-    #     ' set person_name = ?,gender = ?,id_number = ?,phone = ?,political_status = ?,time_Party = ?,time_work = ?,address = ?,resume = ? where person_id = ?'
-    # db.execute(sql_person,
-    #            (update_data[0], update_data[1], update_data[2], update_data[3], update_data[4],
-    #             update_data[5], update_data[6], update_data[7], update_data[8], person_id))
-
-    # sql_education = 'update education_' + \
-    #     session['year_current'] + \
-    #     ' set edu_start = ?,time_edu_start = ?,school_edu_start = ?,major_edu_start = ?,edu_end = ?,time_edu_end = ?,school_edu_end = ?,major_edu_end = ? where person_id = ?'
-    # db.execute(sql_education,
-    #            (update_data[9], update_data[10], update_data[11], update_data[12], update_data[13],
-    #             update_data[14], update_data[15], update_data[16], person_id))
-
-    # sql_skill = 'update skill_' + \
-    #     session['year_current'] + \
-    #     ' set skill_title = ?,time_skill = ?,skill_unit = ?,skill_number = ? where person_id = ?'
-    # db.execute(sql_skill,
-    #            (update_data[17], update_data[18], update_data[19], update_data[20], person_id))
-
-    # sql_workinfo = 'update workinfo_' + \
-    #     session['year_current'] + \
-    #     ' set time_school = ?,work_kind = ?,job_post = ?,time_retire = ? where person_id = ?'
-    # db.execute(sql_workinfo,
-    #            (update_data[21], update_data[22],
-    #             update_data[23], update_data[24], person_id))
-    # db.commit()
-    # msg = '成功修改教师“' + update_data[0] + '”的基本信息'
-    msg = '成功修改'
-    return {'msg': msg}
+    person_name = db.execute('select person_name from person_' +
+                             session['year_current']+' where person_id = ?', (person_id,)).fetchone()['person_name']
+    msg = '成功修改教师“' + person_name + '”的荣誉档案'
+    return jsonify({'msg': msg})
 
 
-def float_int_string(float_num):
-    if type(float_num) != str:
-        float_num = str(int(float_num))
-    return float_num
+@bp.route('/search_data', methods=('GET', 'POST'))
+def search_data():
+    search_item = request.args.get('search_item', type=str)
+    search_string = request.args.get('search_string', type=str)
+
+    db = get_lijing_db()
+
+    sql = 'select p.person_id, p.person_name, count(h.person_id) num from person_'+session['year_current'] + ' as p LEFT JOIN honor_' + \
+        session['year_current'] + ' as h on p.person_id = h.person_id where ' + \
+        search_item+' like \'%'+search_string+'%\' GROUP by p.person_id;'
+
+    result = db.execute(sql).fetchall()
+    data = []
+    for row in result:
+        d = {}
+        d['id'] = row['person_id']
+        d['name'] = row['person_name']
+        if row['num'] == 0:
+            d['num'] = '无'
+        else:
+            d['num'] = row['num']
+        data.append(d)
+
+    msg = '成功查询到'+str(len(data))+'条信息'
+
+    return jsonify({'msg': msg, 'total': len(data), 'rows': data})
 
 
-@bp.route('/set_year')
-def set_year():
-    year = request.args.get('year')
-    session['year_current'] = year
-    msg = 'success'
-    return {'msg': msg}
+@bp.route('/exportData', methods=('GET', 'POST'))
+def exportData():
+    db = get_lijing_db()
+
+    year = session['year_current']
+
+    sql = 'select p.person_name, school_name, honor_time, get_time, honor_unit, honor_name, honor_grade, honor_number, honor_remark from person_' + \
+        year+' as p left join honor_'+year + \
+        ' as h on p.person_id = h.person_id where p.person_id = ?'
+
+    flag_search = request.args.get('flag_search')
+    id_list = []
+    if flag_search == 'true':
+        id_list = request.args.getlist("id_list[]")
+    else:
+        person_data = db.execute(
+            'select person_id from person_'+year).fetchall()
+        for i in person_data:
+            id_list.append(i['person_id'])
+
+    export_item = ['person_name', 'honor_name', 'honor_grade', 'honor_time',
+                   'honor_number', 'honor_unit', 'get_time', 'school_name', 'honor_remark']
+    table_data = []
+    for i in id_list:
+        result = db.execute(sql, (i, )).fetchall()
+        row = []
+        for r in result:
+            for item in export_item:
+                row.append(r[item])
+            table_data.append(row)
+
+    item_name_dict = {'person_name': '姓名', "honor_name": '获奖名称', "honor_grade": '证书级别', "honor_time": '发证时间',
+                      "honor_number": '证书编号', "honor_unit": '发证单位', 'get_time': '获奖时间', 'school_name': '获奖时所在分校', 'honor_remark': '备注'}
+
+    workbook = xlsxwriter.Workbook(
+        'flaskr\\static\\downloads\\exportData.xlsx')
+    worksheet = workbook.add_worksheet('Sheet1')
+    for i in range(len(export_item)):
+        worksheet.write(0, i, item_name_dict[export_item[i]])
+    for i in range(len(table_data)):
+        for j in range(len(export_item)):
+            worksheet.write(i+1, j, table_data[i][j])
+
+    workbook.close()
+
+    msg = str(len(table_data))
+    return jsonify({'msg': msg, 'filename': 'exportData.xlsx'})

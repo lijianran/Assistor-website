@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'base_lijing.html' %}
 
-<h1>{% block title %}lijing{% endblock %}</h1>
+<h1>{% block title %}work{% endblock %}</h1>
 
 
-{% block tools %}
+{#{% block tools %}
 
 <div class="list-group">
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
@@ -17,12 +17,124 @@
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
 </div>
+{% endblock %}#}
+
+
+{% block sidebar %}
+<div class="sidebar-sticky pt-3">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('lijing.board') }}">
+                <span data-feather="home"></span>
+                面板 <span class="sr-only">(current)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="file"></span>
+                模块一
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="shopping-cart"></span>
+                模块二
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="collapse" data-target="#demo">
+                <span data-feather="users"></span>
+                教师管理
+                <span data-feather="plus-circle"></span>
+            </a>
+            <div class="collapse show" id="demo">
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_basicinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师基本信息
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('lijing_workinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师业务档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师荣誉档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            数据检索
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="bar-chart-2"></span>
+                模块四
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="layers"></span>
+                模块五
+            </a>
+        </li>
+    </ul>
+
+    <!-- <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <span>教师管理</span>
+        <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report" data-toggle="collapse"
+            data-target="#demo">
+            <span data-feather="plus-circle"></span>
+        </a>
+    </h6>
+    <div class="collapse show" id="demo">
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('lijing_basicinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师基本信息
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('lijing_workinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师业务档案
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师荣誉档案
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <span data-feather="file-text"></span>
+                    数据检索
+                </a>
+            </li>
+        </ul>
+    </div> -->
+
+</div>
 {% endblock %}
 
 
 {% block content %}
 <div class="jumbotron">
     <h1 id="jumbotron_string">教师业务档案</h1>
+    <p class="lead">...</p>
 </div>
 
 <div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
@@ -70,7 +182,7 @@
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <a class="dropdown-item" href="javascript:void(0)" onclick="show_school_class()">分校班级</a>
             <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入数据</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="show_export_data()" id="export_button">导出数据</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_export_modal()" id="export_button">导出数据</a>
         </div>
     </div>
     <div class="mr-2">
@@ -332,14 +444,14 @@
             <!-- 模态框主体 -->
             <div class="modal-body">
                 <div class="alert alert-primary" role="alert">
-                    导出当前表格中教师基本信息数据：请选择要导出的项
+                    正在导出 <span id="export_string"></span> 条表格数据到excel文件，请稍等。
                 </div>
-                <div id="radios"></div>
+                <!-- <div id="radios"></div> -->
             </div>
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
-                <button type="button" id="add_person" class="btn btn-primary" onclick="export_table()">导出</button>
+                <!-- <button type="button" id="add_person" class="btn btn-primary" onclick="export_table()">导出</button> -->
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
@@ -530,7 +642,7 @@
             cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
             pagination: true,
             pageNumber: 1, //初始化加载第10页，默认第一页
-            pageSize: 10, //每页的记录行数（*）
+            pageSize: 20, //每页的记录行数（*）
             pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
             smartDisplay: false,
             strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
@@ -586,28 +698,33 @@
         $('#importModal').modal('show');
     };
 
-    function show_export_data() {
-        $('#exportModal').modal('show');
+    function show_export_modal() {
+        if (confirm('是否导出当前表格中的数据？') == true) {
 
-        var id_list = []
-        var table_data = $('#table').bootstrapTable('getData');
-        for (var i = 0; i < table_data.length; i++) {
-            id_list.push(table_data[i].id);
+            $('#exportModal').modal('show');
+
+            var id_list = []
+            var table_data = $('#table').bootstrapTable('getData');
+            for (var i = 0; i < table_data.length; i++) {
+                id_list.push(table_data[i].id);
+            }
+
+            var datas = {};
+            datas['flag_search'] = flag_search;
+            datas["id_list"] = id_list;
+
+            $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/exportData', datas, function (return_data) {
+                $("#exportModal").modal("hide");
+
+                document.getElementById("export_string").innerHTML = return_data.msg;
+                //document.getElementById("success_info").style.display = "block";
+                //document.getElementById("success_msg").innerHTML = return_data.msg;
+                //window.alert('/lijing/download_excel_file/' + return_data.filename)
+                window.location.href = '/lijing/download_excel_file/' + return_data.filename;
+
+            });
+
         }
-
-        var datas = {};
-        datas['flag_search'] = flag_search;
-        datas["id_list"] = id_list;
-
-        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/exportData', datas, function (return_data) {
-            $("#exportModal").modal("hide");
-            document.getElementById("success_info").style.display = "block";
-            document.getElementById("success_msg").innerHTML = return_data.msg;
-            //window.alert('/lijing/download_excel_file/' + return_data.filename)
-            window.location.href = '/lijing_workinfo/download_excel_file/' + return_data.filename;
-            //$("#detailModal").modal("hide");
-            //$("#table").bootstrapTable('refresh');
-        });
 
     };
 
@@ -783,7 +900,7 @@
             }
             else {
                 document.getElementById("school_select").options.add(new Option(school_string));
-                window.alert(return_data.msg);
+                //window.alert(return_data.msg);
             }
             var card = document.getElementById("school_card");
             card.innerHTML = ''
@@ -918,7 +1035,7 @@
         document.getElementById('jumbotron_string').innerHTML = this.value + '年-教师业务档案';
         datas = {};
         datas['year'] = this.value;
-        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/set_year', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing/set_year', datas, function (return_data) {
 
             $("#table").bootstrapTable('refresh');
         });
@@ -982,7 +1099,7 @@
 
             flag_search = true;
             document.getElementById("origin_button").style.display = "block";
-            $('#export_button').removeClass('disabled');
+            //$('#export_button').removeClass('disabled');
             $("#table").bootstrapTable("destroy");
             $('#table').bootstrapTable({
                 //url: '/lijing/jsondata',  // 请求数据源的路由
@@ -997,7 +1114,7 @@
                 cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
                 pagination: false,
                 pageNumber: 1, //初始化加载第10页，默认第一页
-                pageSize: 10, //每页的记录行数（*）
+                pageSize: 20, //每页的记录行数（*）
                 pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
                 smartDisplay: false,
                 strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
@@ -1046,7 +1163,7 @@
         document.getElementById("search_string").value = "";
         document.getElementById("success_info").style.display = "none";
         document.getElementById("origin_button").style.display = "none";
-        $('#export_button').addClass('disabled');
+        //$('#export_button').addClass('disabled');
     }
 
 

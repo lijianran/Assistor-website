@@ -10,6 +10,7 @@ from flaskr.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
@@ -23,7 +24,7 @@ def register():
         elif not password:
             error = '密码不能为空'
         elif db.execute(
-            'select users_id from users where username=?',(username,)
+            'select users_id from users where username=?', (username,)
         ).fetchone() is not None:
             error = '用户名{}已经被注册'.format(username)
 
@@ -41,6 +42,7 @@ def register():
 
     return render_template('auth/register.html')
 
+
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
@@ -53,18 +55,20 @@ def login():
         ).fetchone()
 
         if user is None:
-            error = 'Incorrect username.'
+            error = '账号错误'
         elif not check_password_hash(user['password'], password):
-            error = 'Incorrect password.'
+            error = '密码错误'
 
         if error is None:
             session.clear()
             session['user_id'] = user['users_id']
-            return redirect(url_for('index'))
+            return redirect(url_for('lijing.board'))
 
         flash(error)
 
-    return render_template('auth/login.html')
+    return redirect(url_for('lijing.index'))
+    # return render_template('lijing/login.html')
+
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -77,10 +81,12 @@ def load_logged_in_user():
             'SELECT * FROM users WHERE users_id = ?', (user_id,)
         ).fetchone()
 
+
 @bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('lijing.index'))
+
 
 def login_required(view):
     @functools.wraps(view)
@@ -91,4 +97,3 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
-

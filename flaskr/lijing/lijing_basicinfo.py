@@ -8,6 +8,8 @@ from flaskr.auth import login_required
 
 from flaskr.db import get_db, get_lijing_db
 
+from flaskr.lijing.lijing_index import float_int_string
+
 from random import choice
 import os
 import xlrd
@@ -20,6 +22,7 @@ bp = Blueprint('lijing_basicinfo', __name__, url_prefix='/lijing_basicinfo')
 
 
 @bp.route('/hello')
+@login_required
 def hello():
     db = get_lijing_db()
 
@@ -214,8 +217,8 @@ def search():
     return jsonify(data)
 
 
-@bp.route('/add_person', methods=('GET', 'POST'))
-def add_person():
+@bp.route('/add_data', methods=('GET', 'POST'))
+def add_data():
     insert_data = [0 for i in range(25)]
     item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
             "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
@@ -265,8 +268,8 @@ def add_person():
     return {'msg': msg}
 
 
-@bp.route('/update_person', methods=('GET', 'POST'))
-def update_person():
+@bp.route('/update_data', methods=('GET', 'POST'))
+def update_data():
     update_data = [0 for i in range(25)]
     item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
             "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
@@ -312,7 +315,42 @@ def update_person():
     db.commit()
     msg = '成功修改教师“' + update_data[0] + '”的基本信息'
 
-    return {'msg': msg}
+    return jsonify({'msg': msg})
+
+
+@bp.route('/search_data', methods=('GET', 'POST'))
+def search_data():
+    search_item = request.args.get('search_item', '暂无', type=str)
+    search_string = request.args.get('search_string', '暂无', type=str)
+
+    db = get_lijing_db()
+    year = session['year_current']
+    person = 'person_'+year
+    education = 'education_'+year
+    skill = 'skill_'+year
+    workinfo = 'workinfo_'+year
+    # sql = 'select '+person+'.person_id, '+person+'.person_name, '+person+'.gender from '+person+' join '+education+', '+skill+', '+workinfo + \
+    #     ' on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and ' + \
+    #     person+'.person_id = '+workinfo+'.person_id where ' + \
+    #     search_item + ' like \'%' + search_string + '%\';'
+    sql = 'select p.person_id, p.person_name, p.gender from '+person+' as p join '+education+' as e on p.person_id = e.person_id join ' + skill + \
+        ' as s on p.person_id = s.person_id join '+workinfo + \
+        ' as w on p.person_id = w.person_id where ' + \
+        search_item + ' like \'%' + search_string + '%\';'
+
+    result = db.execute(sql).fetchall()
+
+    data = []
+    for row in result:
+        d = {}
+        d['id'] = row['person_id']
+        d['name'] = row['person_name']
+        d['gender'] = row['gender']
+        data.append(d)
+
+    msg = '成功查询到'+str(len(data))+'条信息'
+
+    return jsonify({'msg': msg, 'total': len(data), 'rows': data})
 
 
 @bp.route('/exportData', methods=('GET', 'POST'))
@@ -385,77 +423,4 @@ def exportData():
     #     __file__), 'static', 'downloads', 'exportData.xlsx'))
     msg = '成功导出'+str(len(id_list))+'条信息'
 
-    return {'msg': msg, 'filename': 'exportData.xlsx'}
-
-
-@bp.route('/download_excel_file/<string:excel_filename>')
-def download_excel_file(excel_filename):
-    """
-    下载src_file目录下面的文件
-    eg：下载当前目录下面的123.tar 文件，eg:http://localhost:5000/download?fileId=123.tar
-    :return:
-    """
-    # file_name = request.args.get('fileId')
-    file_path = os.path.join(os.path.dirname(
-        __file__), '..\\static', 'downloads', excel_filename)
-    print(file_path)
-    if os.path.isfile(file_path):
-        return send_file(file_path, as_attachment=True)
-    else:
-        return "The downloaded file does not exist"
-
-
-@bp.route('/search_person', methods=('GET', 'POST'))
-def seach_person():
-    search_item = request.args.get('search_item', '暂无', type=str)
-    search_string = request.args.get('search_string', '暂无', type=str)
-
-    db = get_lijing_db()
-    year = session['year_current']
-    person = 'person_'+year
-    education = 'education_'+year
-    skill = 'skill_'+year
-    workinfo = 'workinfo_'+year
-    # sql = 'select '+person+'.person_id, '+person+'.person_name, '+person+'.gender from '+person+' join '+education+', '+skill+', '+workinfo + \
-    #     ' on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and ' + \
-    #     person+'.person_id = '+workinfo+'.person_id where ' + \
-    #     search_item + ' like \'%' + search_string + '%\';'
-    sql = 'select p.person_id, p.person_name, p.gender from '+person+' as p join '+education+' as e on p.person_id = e.person_id join ' + skill + \
-        ' as s on p.person_id = s.person_id join '+workinfo + \
-        ' as w on p.person_id = w.person_id where ' + \
-        search_item + ' like \'%' + search_string + '%\';'
-
-    result = db.execute(sql).fetchall()
-
-    db.commit()
-
-    data = []
-    for row in result:
-        d = {}
-        d['id'] = row['person_id']
-        d['name'] = row['person_name']
-        d['gender'] = row['gender']
-        data.append(d)
-
-    msg = '成功查询到'+str(len(data))+'条信息'
-
-    return jsonify({'msg': msg, 'total': len(data), 'rows': data})
-
-
-@bp.route('/set_year')
-def set_year():
-    year = request.args.get('year')
-    session['year_current'] = year
-    msg = 'success'
-    return {'msg': msg}
-
-
-def float_int_string(float_num):
-    if type(float_num) != str:
-        float_num = str(int(float_num))
-    return float_num
-
-
-@bp.route('/lijing_index')
-def lijing_index():
-    return render_template('lijing/hello.html')
+    return jsonify({'msg': msg, 'filename': 'exportData.xlsx'})

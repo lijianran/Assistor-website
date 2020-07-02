@@ -1,12 +1,14 @@
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, session, send_file, send_from_directory
 )
-
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
+
 from flaskr.db import get_db, get_lijing_db
+
+from flaskr.lijing.lijing_index import float_int_string
 
 from random import choice
 import os
@@ -20,6 +22,7 @@ bp = Blueprint('lijing_workinfo', __name__, url_prefix='/lijing_workinfo')
 
 
 @bp.route('/hello')
+@login_required
 def hello():
     db = get_lijing_db()
 
@@ -272,12 +275,6 @@ def readfile():
     return jsonify({'msg': msg, 'table_title': table_title})
 
 
-def float_int_string(float_num):
-    if type(float_num) != str:
-        float_num = str(int(float_num))
-    return float_num
-
-
 @bp.route('/importData', methods=('GET', 'POST'))
 def importData():
     if request.method == 'POST':
@@ -422,11 +419,14 @@ def exportData():
     school = 'school_'+year
     job = 'job_'+year
     workload = 'workload_'+year
+    rank = 'rank_'+year
     sql_search = 'select p.person_name, class.class_name, school.school_name, job.job_name, work.lesson_number, work.year_result from '+person+' as p left join '+clas+' as class on p.person_id = class.person_id left join ' + \
         job+' as job on p.person_id = job.person_id left join '+workload+' as work on p.person_id = work.person_id left join ' + \
             school+' as school on job.school_id = school.school_id where p.person_id = ?'
+    sql_rank = 'select subject, class_name, rank_up_school, rank_up_country, rank_down_school, rank_down_country from ' + \
+        rank+' as r join '+clas+' as c on r.class_id = c.class_id where r.person_id = ?'
+    print(sql_rank)
 
-    print(sql_search)
     flag_search = request.args.get('flag_search')
     id_list = []
     if flag_search == 'true':
@@ -438,33 +438,50 @@ def exportData():
 
     export_item = ['person_name', 'class_name', 'school_name',
                    'job_name', 'lesson_number', 'year_result']
+    rank_item = ['subject', 'class_name', 'rank_up_school',
+                 'rank_up_country', 'rank_down_school', 'rank_down_country']
     table_data = []
+    rank_number = 0
     for i in id_list:
-        result = db.execute(sql_search, (int(i), )).fetchone()
+        result = db.execute(sql_search, (i, )).fetchone()
+        rank = db.execute(sql_rank, (i, )).fetchall()
+        if len(rank) >= rank_number:
+            rank_number = len(rank)
         row = []
         for item in export_item:
             row.append(result[item])
+        for r in rank:
+            for item in rank_item:
+                row.append(r[item])
+
         table_data.append(row)
 
-    item_name_dict = {'person_name': '姓名', "class_name": '是否班主任', "school_name": '所在分校',
-                      "job_name": '行政职务', "lesson_number": '总课时数', "year_result": '年度考核'}
+    item_name_dict = {'person_name': '姓名', 'class_name': '是否班主任', 'school_name': '所在分校',
+                      'job_name': '行政职务', 'lesson_number': '总课时数', 'year_result': '年度考核'}
+    rank_name_list = ['任教班级', '任教学科', '上学期全校排名',
+                      '上学期全县排名', '下学期全校排名', '下学期全县排名']
 
     workbook = xlsxwriter.Workbook(
         'flaskr\\static\\downloads\\exportData.xlsx')
     worksheet = workbook.add_worksheet('Sheet1')
     for i in range(len(export_item)):
         worksheet.write(0, i, item_name_dict[export_item[i]])
+    num = 6
+    for i in range(0, rank_number):
+        for j in range(len(rank_name_list)):
+            worksheet.write(0, num+j, rank_name_list[j]+str(i+1))
+        num = num + 6
     for i in range(len(id_list)):
-        for j in range(len(export_item)):
+        for j in range(len(table_data[i])):
             worksheet.write(i+1, j, table_data[i][j])
 
     workbook.close()
 
-    msg = '成功导出'+str(len(id_list))+'条信息'
-    return {'msg': 'chfsdfsdf', 'filename': 'exportData.xlsx'}
+    msg = str(len(id_list))
+    return jsonify({'msg': msg, 'filename': 'exportData.xlsx'})
 
 
-@bp.route('/search', methods=('GET', 'POST'))
+@ bp.route('/search', methods=('GET', 'POST'))
 def search():
     person_id = request.args.get('id')
 
@@ -524,7 +541,7 @@ def search():
     return jsonify(datas)
 
 
-@bp.route('/update_data', methods=('GET', 'POST'))
+@ bp.route('/update_data', methods=('GET', 'POST'))
 def update_data():
     item = ['person_name', 'school_name', 'job_name',
             'lesson_number', 'year_result', 'class_master']
@@ -600,7 +617,7 @@ def update_data():
     return jsonify({'msg': '成功更新教师“' + update_data['person_name'] + '”的业务档案'})
 
 
-@bp.route('/search_data', methods=('GET', 'POST'))
+@ bp.route('/search_data', methods=('GET', 'POST'))
 def search_data():
     search_item = request.args.get('search_item', '暂无', type=str)
     search_string = request.args.get('search_string', '暂无', type=str)
@@ -694,28 +711,3 @@ def search_data():
     msg = '成功查询到 '+str(len(data))+' 条信息'
 
     return jsonify({'msg': msg, 'total': len(data), 'rows': data})
-
-
-@bp.route('/set_year')
-def set_year():
-    year = request.args.get('year')
-    session['year_current'] = year
-    msg = 'success'
-    return jsonify({'msg': msg})
-
-
-@bp.route('/download_excel_file/<string:excel_filename>')
-def download_excel_file(excel_filename):
-    """
-    下载src_file目录下面的文件
-    eg：下载当前目录下面的123.tar 文件，eg:http://localhost:5000/download?fileId=123.tar
-    :return:
-    """
-    # file_name = request.args.get('fileId')
-    file_path = os.path.join(os.path.dirname(
-        __file__), '..\\static', 'downloads', excel_filename)
-    print(file_path)
-    if os.path.isfile(file_path):
-        return send_file(file_path, as_attachment=True)
-    else:
-        return "The downloaded file does not exist"

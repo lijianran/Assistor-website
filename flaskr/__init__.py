@@ -2,7 +2,7 @@ import os
 
 from flask import Flask
 
-from datetime import timedelta
+# from datetime import timedelta
 
 
 def create_app(test_config=None):
@@ -33,9 +33,9 @@ def create_app(test_config=None):
     from . import auth
     app.register_blueprint(auth.bp)
 
-    from . import blog
-    app.register_blueprint(blog.bp)
-    app.add_url_rule('/', endpoint='index')
+    # from . import blog
+    # app.register_blueprint(blog.bp)
+    # app.add_url_rule('/', endpoint='index')
 
     # from . import lijing
     from .lijing import lijing_basicinfo
@@ -46,5 +46,9 @@ def create_app(test_config=None):
 
     from .lijing import lijing_honorinfo
     app.register_blueprint(lijing_honorinfo.bp)
+
+    from .lijing import lijing_index
+    app.register_blueprint(lijing_index.bp)
+    app.add_url_rule('/', endpoint='lijing.index')
 
     return app

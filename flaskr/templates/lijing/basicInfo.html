@@ -1,11 +1,11 @@
-{% extends 'base.html' %}
+{% extends 'base_lijing.html' %}
 
-<h1>{% block title %}lijing{% endblock %}</h1>
+<h1>{% block title %}basic{% endblock %}</h1>
 
 
-{% block tools %}
+{# {% block tools %}
 
-<div class="list-group">
+<!-- <div class="list-group">
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
         data-target="#demo">教师管理</a>
     <div class="list-group collapse show" id="demo">
@@ -16,12 +16,125 @@
     </div>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
     <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
+</div> -->
+{% endblock %} #}
+
+
+{% block sidebar %}
+<div class="sidebar-sticky pt-3">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('lijing.board') }}">
+                <span data-feather="home"></span>
+                面板 <span class="sr-only">(current)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="file"></span>
+                模块一
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="shopping-cart"></span>
+                模块二
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="collapse" data-target="#demo">
+                <span data-feather="users"></span>
+                教师管理
+                <span data-feather="plus-circle"></span>
+            </a>
+            <div class="collapse show" id="demo">
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('lijing_basicinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师基本信息
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_workinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师业务档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师荣誉档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            数据检索
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="bar-chart-2"></span>
+                模块四
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="layers"></span>
+                模块五
+            </a>
+        </li>
+    </ul>
+
+    <!-- <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <span>教师管理</span>
+        <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report" data-toggle="collapse"
+            data-target="#demo">
+            <span data-feather="minus-circle"></span>
+        </a>
+    </h6>
+    <div class="collapse show" id="demo">
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('lijing_basicinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师基本信息
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('lijing_workinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师业务档案
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师荣誉档案
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <span data-feather="file-text"></span>
+                    数据检索
+                </a>
+            </li>
+        </ul>
+    </div> -->
+
 </div>
 {% endblock %}
+
 
 {% block content %}
 <div class="jumbotron">
     <h1 id="jumbotron_string">教师基本信息</h1>
+    <p class="lead">...</p>
 </div>
 
 <div id="success_info" class="alert alert-success alert-dismissible" style="display: none;">
@@ -46,7 +159,7 @@
         </div>
         <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
         <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" onclick="search_person()">搜索</button>
+            <button class="btn btn-outline-secondary" type="button" onclick="search_data()">搜索</button>
         </div>
     </div>
 </div>
@@ -60,7 +173,7 @@
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             <a class="dropdown-item" href="javascript:void(0)" onclick="show_add_modal()">添加</a>
             <a class="dropdown-item" href="javascript:void(0)" onclick="show_import_modal()">导入</a>
-            <a class="dropdown-item" href="javascript:void(0)" onclick="export_data()" id="export_button">导出</a>
+            <a class="dropdown-item" href="javascript:void(0)" onclick="show_export_modal()" id="export_button">导出</a>
         </div>
     </div>
     <div class="mr-2">
@@ -205,10 +318,10 @@
             <!-- 模态框底部 -->
             <div class="modal-footer">
 
-                <button type="button" id="add_person" class="btn btn-primary" style="display: none;"
-                    onclick="add_person()">添加</button>
-                <button type="button" id="update_person" class="btn btn-primary" style="display: none;"
-                    onclick="update_person()">修改</button>
+                <button type="button" id="button_add" class="btn btn-primary" style="display: none;"
+                    onclick="add_data()">添加</button>
+                <button type="button" id="button_update" class="btn btn-primary" style="display: none;"
+                    onclick="update_data()">修改</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
 
@@ -378,8 +491,8 @@
             });
             $("#detailModal input").attr("readOnly", true);
             $("#resume").attr("readOnly", true);
-            document.getElementById("add_person").style.display = "none";
-            document.getElementById("update_person").style.display = "none";
+            document.getElementById("button_add").style.display = "none";
+            document.getElementById("button_update").style.display = "none";
             $('#detailModal').modal('show');
 
         },
@@ -396,8 +509,8 @@
                 }
             });
 
-            document.getElementById("update_person").style.display = "block";
-            document.getElementById("add_person").style.display = "none";
+            document.getElementById("button_update").style.display = "block";
+            document.getElementById("button_add").style.display = "none";
             document.getElementById("detail_modal_title").innerHTML = '修改教师"' + row.name + '"的基本信息';
             $("#detailModal input").attr("readOnly", false);
             $("#resume").attr("readOnly", false);
@@ -424,7 +537,7 @@
             cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
             pagination: true,
             pageNumber: 1, //初始化加载第10页，默认第一页
-            pageSize: 10, //每页的记录行数（*）
+            pageSize: 20, //每页的记录行数（*）
             pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
             smartDisplay: false,
             strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
@@ -482,8 +595,8 @@
             document.getElementById(item[i]).value = "";
         }
 
-        document.getElementById("add_person").style.display = "block";
-        document.getElementById("update_person").style.display = "none";
+        document.getElementById("button_add").style.display = "block";
+        document.getElementById("button_update").style.display = "none";
         document.getElementById("detail_modal_title").innerHTML = "新增教师基本信息";
         $("#detailModal input").attr("readOnly", false);
         $("#resume").attr("readOnly", false);
@@ -491,7 +604,7 @@
 
     };
 
-    function add_person() {
+    function add_data() {
         if (test_data("add") != 0) {
             window.alert("姓名和身份证为必填项！");
             return;
@@ -506,7 +619,7 @@
             datas[item[i]] = document.getElementById(item[i]).value;
         }
 
-        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/add_person', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/add_data', datas, function (return_data) {
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
             $("#detailModal").modal("hide");
@@ -514,7 +627,7 @@
 
     };
 
-    function update_person() {
+    function update_data() {
         var datas = {};
         var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
             "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
@@ -526,7 +639,7 @@
             datas[item[i]] = document.getElementById(item[i]).value;
         }
 
-        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/update_person', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/update_data', datas, function (return_data) {
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
             $("#detailModal").modal("hide");
@@ -534,60 +647,23 @@
         });
     };
 
-
-
-    function show_origin_table() {
-        flag_search = false;
-
-        $('#table').bootstrapTable("destroy");
-        init_table();
-        document.getElementById("select_year").disabled = false;
-        document.getElementById("search_string").value = "";
-        document.getElementById("success_info").style.display = "none";
-        document.getElementById("origin_button").style.display = "none";
-        //$('#export_button').addClass('disabled');
-    };
-
-
-
-    function test_data(code) {
-        if (code == "add") {
-            if (document.getElementById("person_name").value == "") {
-                return 1;
-            }
-            if (document.getElementById("id_number").value == "") {
-                return 1;
-            }
-        }
-        if (code == "search") {
-            if (document.getElementById("search_string").value == "") {
-                return 1;
-            }
-
-        }
-
-        return 0;
-    };
-
-
-
-
-    function search_person() {
+    function search_data() {
         if (test_data("search") != 0) {
             window.alert("请填入要搜索内容");
             return;
         }
+
         document.getElementById("select_year").disabled = true;
         var index = document.getElementById("search_select").selectedIndex;
-        var val = document.getElementById("search_select").options[index].value;
+        var search_item = document.getElementById("search_select").options[index].value;
 
         var search_string = document.getElementById("search_string").value;
 
         datas = {};
-        datas["search_item"] = val;
+        datas["search_item"] = search_item;
         datas["search_string"] = search_string;
 
-        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search_person', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search_data', datas, function (return_data) {
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
 
@@ -608,7 +684,7 @@
                 cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
                 pagination: false,
                 pageNumber: 1, //初始化加载第10页，默认第一页
-                pageSize: 10, //每页的记录行数（*）
+                pageSize: 20, //每页的记录行数（*）
                 pageList: [10, 20, 50, 100], //可供选择的每页的行数（*）
                 smartDisplay: false,
                 strictSearch: true,//设置为 true启用 全匹配搜索，false为模糊搜索
@@ -653,9 +729,19 @@
         });
     }
 
+    function show_origin_table() {
+        flag_search = false;
 
+        $('#table').bootstrapTable("destroy");
+        init_table();
+        document.getElementById("select_year").disabled = false;
+        document.getElementById("search_string").value = "";
+        document.getElementById("success_info").style.display = "none";
+        document.getElementById("origin_button").style.display = "none";
+        //$('#export_button').addClass('disabled');
+    };
 
-    function export_data() {
+    function show_export_modal() {
         $('#exportModal').modal('show');
     };
 
@@ -690,12 +776,31 @@
             $("#exportModal").modal("hide");
             document.getElementById("success_info").style.display = "block";
             document.getElementById("success_msg").innerHTML = return_data.msg;
-            //window.alert('/lijing_basicinfo/download_excel_file/' + return_data.filename)
-            window.location.href = '/lijing_basicinfo/download_excel_file/' + return_data.filename;
+            //window.alert('/lijing/download_excel_file/' + return_data.filename)
+            window.location.href = '/lijing/download_excel_file/' + return_data.filename;
             //$("#detailModal").modal("hide");
             //$("#table").bootstrapTable('refresh');
         });
     }
+
+    function test_data(code) {
+        if (code == "add") {
+            if (document.getElementById("person_name").value == "") {
+                return 1;
+            }
+            if (document.getElementById("id_number").value == "") {
+                return 1;
+            }
+        }
+        if (code == "search") {
+            if (document.getElementById("search_string").value == "") {
+                return 1;
+            }
+
+        }
+
+        return 0;
+    };
 
     function showFilename(file) {
         $("#filename_label").html(file.name);
@@ -707,7 +812,7 @@
 
         datas = {};
         datas['year'] = this.value;
-        $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/set_year', datas, function (return_data) {
+        $.getJSON($SCRIPT_ROOT + '/lijing/set_year', datas, function (return_data) {
             $("#table").bootstrapTable('refresh');
         });
 

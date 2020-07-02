@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, session, send_file, send_from_directory
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, session
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename

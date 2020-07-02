@@ -68,7 +68,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ url_for('lijing_search.hello') }}">
                             &nbsp;&nbsp;<span data-feather="file-text"></span>
                             数据检索
                         </a>
@@ -142,7 +142,7 @@
 </div>
 
 <div class="row" id="search_bar">
-    <div class="input-group mb-3 col-md-3">
+    <div class="input-group mb-3 col-md-4">
         <div class="input-group-prepend">
             <label class="input-group-text" for="select_year">年份</label>
         </div>
@@ -152,7 +152,7 @@
             {% endfor %}
         </select>
     </div>
-    <div class="input-group mb-3 col-md-9">
+    <div class="input-group mb-3 col-md-8">
         <div class="input-group-prepend">
             <select class="custom-select" id="search_select">
             </select>

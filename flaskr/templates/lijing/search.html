@@ -1,0 +1,114 @@
+{% extends 'base_lijing.html' %}
+
+<h1>{% block title %}search{% endblock %}</h1>
+
+
+{% block sidebar %}
+<div class="sidebar-sticky pt-3">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('lijing.board') }}">
+                <span data-feather="home"></span>
+                面板 <span class="sr-only">(current)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="file"></span>
+                模块一
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="shopping-cart"></span>
+                模块二
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="collapse" data-target="#demo">
+                <span data-feather="users"></span>
+                教师管理
+                <span data-feather="plus-circle"></span>
+            </a>
+            <div class="collapse show" id="demo">
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_basicinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师基本信息
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_workinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师业务档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师荣誉档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('lijing_search.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            数据检索
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="bar-chart-2"></span>
+                模块四
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="layers"></span>
+                模块五
+            </a>
+        </li>
+    </ul>
+
+    <!-- <h3 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <span>教师管理</span>
+        <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report" data-toggle="collapse"
+            data-target="#demo">
+            <span data-feather="plus-circle"></span>
+        </a>
+    </h3>
+    <div class="collapse show" id="demo">
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('lijing_basicinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师基本信息
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('lijing_workinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师业务档案
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('lijing_honorinfo.hello') }}">
+                    <span data-feather="file-text"></span>
+                    教师荣誉档案
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <span data-feather="file-text"></span>
+                    数据检索
+                </a>
+            </li>
+        </ul>
+    </div> -->
+
+</div>
+{% endblock %}

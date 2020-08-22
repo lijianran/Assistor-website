@@ -337,6 +337,43 @@
                       <a href="#" class="btn btn-primary">Go somewhere</a> -->
                     </div>
                 </div>
+
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        删除
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="school_string_del">分校名称</label>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                aria-describedby="inputGroup-sizing-default" id="school_string_del">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="del_school()">删除分校</button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <select class="custom-select" id="school_select_del">
+                                    {% for school in school_list %}
+                                    <option>{{ school }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                            <input type="text" class="form-control" aria-label="Text input with dropdown button"
+                                placeholder="班级名称" id="class_string_del">
+
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="del_class()">删除班级</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- 模态框底部 -->
@@ -480,8 +517,6 @@
         for (var i in item)
             select_search.options.add(new Option(i, item[i]));
 
-
-
     }
     init();
 
@@ -518,12 +553,22 @@
                 for (var i = 0; i < rank.length; i++) {
                     var row = document.createElement("div");
                     row.className = "form-row";
+
+                    //var a = document.createElement("a");
+                    //a.className = "remove";
+                    //a.href = "javascript:void(0)";
+                    //a.title = "Remove";
+                    //var ilabel = document.createElement("i");
+                    //ilabel.className = "fa fa-trash";
+                    //a.appendChild(ilabel);
+                    //row.appendChild(a);
+
                     for (var j = 0; j < rank_item.length; j++) {
                         var d = document.createElement("div");
                         d.className = "form-group col-md-2";
                         var label = document.createElement("label");
                         label.setAttribute("for", rank_item[j] + i);
-                        label.innerText = title_item[j];
+                        label.innerHTML = title_item[j];
                         var input = document.createElement("input");
                         input.className = "form-control";
                         input.readOnly = true;
@@ -570,7 +615,13 @@
                         d.className = "form-group col-md-2";
                         var label = document.createElement("label");
                         label.setAttribute("for", rank_item[j] + i);
-                        label.innerText = title_item[j];
+                        label.innerHTML = title_item[j];
+                        if (rank_item[j] == 'class_id') {
+                            label.innerHTML = title_item[j]
+                                + '&nbsp;&nbsp;<a class="remove" href="javascript:delete_data(' + i + ')" title="Remove">'
+                                + '<i class="fa fa-trash"></i>'
+                                + '</a>';
+                        }
                         var input = document.createElement("input");
                         input.className = "form-control";
                         input.readOnly = false;
@@ -803,8 +854,16 @@
                 }
 
             },
-            error: function (returndata) {
+            error: function (xhr, textStatus, errorThrown) {
                 window.alert("上传失败！")
+                alert("进入error---");
+                alert("状态码：" + xhr.status);
+                alert("状态:" + xhr.readyState); //当前状态,0-未初始化，1-正在载入，2-已经载入，3-数据进行交互，4-完成。
+                alert("错误信息:" + xhr.statusText);
+                alert("返回响应信息：" + xhr.responseText);//这里是详细的信息
+                alert("请求状态：" + textStatus);
+                alert(errorThrown);
+                alert("请求失败");
             }
         });
     }
@@ -872,11 +931,11 @@
         });
 
 
-        item = {
-            '姓名*': 'person_name', '分校': 'school', '职务': 'job_name',
-            '总课时数': 'lesson_number', '年度考核': 'year_result', '任教班级': 'class_id', '任教学科': 'subject',
-            '上学期末排名': 'rank_up_school', '上学期全县排名': 'rank_up_country', '下学期末排名': 'rank_down_school', '下学期全县排名': 'rank_down_country'
-        }
+        //item = {
+        //    '姓名*': 'person_name', '分校': 'school', '职务': 'job_name',
+        //    '总课时数': 'lesson_number', '年度考核': 'year_result', '任教班级': 'class_id', '任教学科': 'subject',
+        //    '上学期末排名': 'rank_up_school', '上学期全县排名': 'rank_up_country', '下学期末排名': 'rank_down_school', '下学期全县排名': 'rank_down_country'
+        //}
 
     }
 
@@ -900,6 +959,7 @@
             }
             else {
                 document.getElementById("school_select").options.add(new Option(school_string));
+                document.getElementById("school_select_del").options.add(new Option(school_string));
                 //window.alert(return_data.msg);
             }
             var card = document.getElementById("school_card");
@@ -930,7 +990,7 @@
                     ul.appendChild(li);
                 }
                 else {
-                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]]; j++) {
+                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]].length; j++) {
                         var li = document.createElement("li");
                         li.className = "list-group-item";
                         li.innerHTML = return_data.class_list[return_data.school_list[i]][j];
@@ -939,7 +999,7 @@
                 }
 
                 d2.appendChild(sp);
-                ul.appendChild(li);
+                //ul.appendChild(li);
                 d1.appendChild(d2);
                 d1.appendChild(ul);
                 card.appendChild(d1);
@@ -1029,6 +1089,156 @@
         });
     }
 
+    function del_school() {
+        var school_string = document.getElementById("school_string_del").value;
+        if (school_string == '') {
+            window.alert('请输入要删除的分校名称');
+            return;
+        }
+        if (confirm('是否删除？') == false) {
+            return;
+        }
+        datas = {}
+        datas['school'] = school_string;
+        var index = document.getElementById("select_year").selectedIndex;
+        var year = document.getElementById("select_year").options[index].value;
+        datas['year'] = year;
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/del_school', datas, function (return_data) {
+            if (return_data.msg == 'error') {
+                window.alert(return_data.error);
+                document.getElementById("school_string").value = "";
+                return;
+            }
+            else {
+                var mySelect = document.getElementById("school_select");
+                for (var i = 0; i < mySelect.length; i++) {
+                    if (mySelect.options[i].text == school_string) {
+                        mySelect.options.remove(i);
+                        document.getElementById("school_select_del").options.remove(i);
+                        break;
+                    }
+                }
+                //document.getElementById("school_select").options.remove(index);
+                //$("#school_classModal").modal("hide");
+            }
+
+            var card = document.getElementById("school_card");
+            card.innerHTML = ''
+            for (var i = 0; i < return_data.school_list.length; i++) {
+                var d1 = document.createElement("div");
+                d1.className = "card mb-3 text-center";
+
+                var d2 = document.createElement("div");
+                d2.className = "card-header";
+                d2.setAttribute("data-toggle", "collapse");
+                d2.setAttribute("data-target", "#class_list_" + i);
+                d2.innerHTML = return_data.school_list[i];
+
+                var sp = document.createElement("span");
+                sp.className = "badge badge-primary badge-pill";
+                sp.innerHTML = return_data.class_list[return_data.school_list[i]].length;
+
+                var ul = document.createElement("ul");
+                ul.className = "list-group list-group-flush collapse";
+                ul.id = 'class_list_' + i;
+
+                if (return_data.class_list[return_data.school_list[i]].length == 0) {
+                    var li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.innerHTML = "暂无班级信息";
+                    ul.appendChild(li);
+                }
+                else {
+                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]].length; j++) {
+                        var li = document.createElement("li");
+                        li.className = "list-group-item";
+                        li.innerHTML = return_data.class_list[return_data.school_list[i]][j];
+                        ul.appendChild(li);
+                    }
+                }
+
+                d2.appendChild(sp);
+                d1.appendChild(d2);
+                d1.appendChild(ul);
+                card.appendChild(d1);
+            }
+        });
+    }
+
+    function del_class() {
+
+        var index = document.getElementById("school_select_del").selectedIndex;
+        var school_string = document.getElementById("school_select_del").options[index].value;
+        if (school_string == '暂无分校') {
+            window.alert('请先添加分校');
+            return;
+        }
+        var class_string = document.getElementById("class_string_del").value;
+        if (class_string == '') {
+            window.alert('请输入要删除的班级名称');
+            return;
+        }
+        if (confirm('是否删除？') == false) {
+            return;
+        }
+
+        datas = {}
+        datas['class'] = class_string;
+        datas['school'] = school_string;
+        index = document.getElementById("select_year").selectedIndex;
+        var year = document.getElementById("select_year").options[index].value;
+        datas['year'] = year;
+        $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/del_class', datas, function (return_data) {
+            if (return_data.msg == 'error') {
+                window.alert(return_data.error);
+                document.getElementById("school_string").value = "";
+                return;
+            }
+            var card = document.getElementById("school_card");
+            card.innerHTML = ''
+            for (var i = 0; i < return_data.school_list.length; i++) {
+                var d1 = document.createElement("div");
+                d1.className = "card mb-3 text-center";
+
+                var d2 = document.createElement("div");
+                d2.className = "card-header";
+                d2.setAttribute("data-toggle", "collapse");
+                d2.setAttribute("data-target", "#class_list_" + i);
+                d2.innerHTML = return_data.school_list[i];
+
+                var sp = document.createElement("span");
+                sp.className = "badge badge-primary badge-pill";
+                sp.innerHTML = return_data.class_list[return_data.school_list[i]].length;
+
+                var ul = document.createElement("ul");
+                ul.className = "list-group list-group-flush collapse";
+                ul.id = 'class_list_' + i;
+
+                if (return_data.class_list[return_data.school_list[i]].length == 0) {
+                    var li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.innerHTML = "暂无班级信息";
+                    ul.appendChild(li);
+                }
+                else {
+                    for (var j = 0; j < return_data.class_list[return_data.school_list[i]].length; j++) {
+                        var li = document.createElement("li");
+                        li.className = "list-group-item";
+                        li.innerHTML = return_data.class_list[return_data.school_list[i]][j];
+                        ul.appendChild(li);
+                    }
+                }
+
+                d2.appendChild(sp);
+                d1.appendChild(d2);
+                d1.appendChild(ul);
+                card.appendChild(d1);
+            }
+
+        });
+
+    }
+
     $("#select_year").change(function () {
         //要触发的事件
 
@@ -1072,6 +1282,28 @@
             $("#detailModal").modal("hide");
             $("#table").bootstrapTable('refresh');
         });
+    }
+
+    function delete_data(id) {
+
+        if (confirm('是否删除？') == true) {
+            var datas = {}
+            datas['person_id'] = update_person_id;
+            datas['class_name'] = document.getElementById("class_id" + id).value;
+            datas['subject'] = document.getElementById("subject" + id).value;
+
+            $.getJSON($SCRIPT_ROOT + '/lijing_workinfo/delete_data', datas, function (return_data) {
+                if (return_data.msg == 'error') {
+                    window.alert(return_data.error);
+                    return;
+                }
+                document.getElementById("success_info").style.display = "block";
+                document.getElementById("success_msg").innerHTML = return_data.msg;
+                $("#detailModal").modal("hide");
+                $("#table").bootstrapTable('refresh');
+            });
+        }
+
     }
 
     function search_data() {

@@ -6,15 +6,15 @@ from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
 
-from flaskr.db import get_db, get_lijing_db
+from flaskr.db import get_db, get_lijing_db, create_table, insert_table, get_item_list, select_table
 
 from flaskr.lijing.lijing_index import float_int_string
 
-from random import choice
+# from random import choice
 import os
 import xlrd
 import xlsxwriter
-import json
+# import json
 import datetime
 from pypinyin import lazy_pinyin
 
@@ -44,17 +44,19 @@ def hello():
 @bp.route('/jsondata', methods=('GET', 'POST'))
 def jsondata():
 
-    db = get_lijing_db()
+    # db = get_lijing_db()
 
     data = []
 
     try:
-        result = db.execute('select person_id, person_name, gender from person_' +
-                            session['year_current']).fetchall()
+        # result = db.execute('select person_id, person_name, gender from person_' +
+        #                     session['year_current']).fetchall()
+        result = select_table('person', session['year_current'],
+                              {'person_id': 'person', 'person_name': 'person', 'gender': 'person'})
         for row in result:
             d = {}
-            d['id'] = row['person_id']
-            d['name'] = row['person_name']
+            d['person_id'] = row['person_id']
+            d['person_name'] = row['person_name']
             d['gender'] = row['gender']
             data.append(d)
     except:
@@ -80,20 +82,6 @@ def importData():
 
         year_select = request.form.get('year_select')
 
-        sql_data = {}
-        with open('flaskr\sql_lijing.json', 'r') as f:
-            sql_data = json.load(f)
-
-        sql_create = ['', '', '', '']
-        sql_create[0] = 'CREATE TABLE person_' + \
-            year_select+sql_data['person']
-        sql_create[1] = 'CREATE TABLE education_' + \
-            year_select+sql_data['education']
-        sql_create[2] = 'CREATE TABLE skill_' + \
-            year_select+sql_data['skill']
-        sql_create[3] = 'CREATE TABLE workinfo_' + \
-            year_select+sql_data['workinfo']
-
         year_data = db.execute('select year from year_list').fetchall()
         year_list = []
         # year_new = datetime.datetime.now().year
@@ -103,9 +91,11 @@ def importData():
         if year_select not in year_list:
             db.execute('insert into year_list (year, basicinfo, workinfo, honorinfo) values (?,?,?,?)',
                        (year_select, 0, 0, 0, ))
-            for sql in sql_create:
-                db.execute(sql)
-            db.commit()
+            # for sql in sql_create:
+            #     db.execute(sql)
+            # db.commit()
+            create_table(
+                ['person', 'education', 'workinfo', 'skill'], year_select)
 
         f = request.files['file']
         filename = secure_filename(''.join(lazy_pinyin(f.filename)))
@@ -123,58 +113,58 @@ def importData():
 
             # 找到标题
             dict_title = {
-                '姓名': 0, '性别': 1, '身份证号': 2, '联系电话': 3, '政治面貌': 4, '入党时间': 5, '参加工作时间': 6, '家庭住址': 7, '工作简历': 8,
-                '第一学历': 9, '第一学历毕业时间': 10, '第一学历毕业学校': 11, '第一学历专业': 12, '最高学历': 13, '最高学历毕业时间': 14, '最高学历毕业学校': 15, '最高学历专业': 16,
-                '专业技术职称': 17, '取得时间': 18, '发证单位': 19, '发证文件批号': 20,
-                '调入大集中学时间': 21, '用工性质': 22, '工作岗位': 23, '退休时间': 24
+                '姓名': 'person_name', '性别': 'gender', '身份证号': 'id_number', '联系电话': 'phone', '政治面貌': 'political_status', '入党时间': 'time_Party', '参加工作时间': 'time_work', '家庭住址': 'address', '工作简历': 'resume',
+                '第一学历': 'edu_start', '第一学历毕业时间': 'time_edu_start', '第一学历毕业学校': 'school_edu_start', '第一学历专业': 'major_edu_start', '最高学历': 'edu_end', '最高学历毕业时间': 'time_edu_end', '最高学历毕业学校': 'school_edu_end', '最高学历专业': 'major_edu_end',
+                '专业技术职称': 'skill_title', '取得时间': 'time_skill', '发证单位': 'skill_unit', '发证文件批号': 'skill_number',
+                '调入大集中学时间': 'time_school', '用工性质': 'work_kind', '工作岗位': 'job_post', '退休时间': 'time_retire'
             }
+
             row_title = table.row_values(0)
-            title_id = [-1 for i in range(25)]
+            title_id = {}
+            for i in dict_title:
+                title_id[dict_title[i]] = -1
+
             for i in range(0, len(row_title)):
                 title_name = row_title[i]
                 if title_name in dict_title:
                     title_id[dict_title[title_name]] = i
 
             # 导入数据
+            item = get_item_list(['person', 'education', 'skill', 'workinfo'])
+
             for i in range(1, table.nrows):
                 row_value = table.row_values(i)
-                insert_data = [0 for i in range(25)]
-                for j in range(0, len(title_id)):
+
+                insert_dict = {}
+                for j in item:
                     if title_id[j] == -1:
-                        insert_data[j] = '暂无'
+                        insert_dict[j] = '暂无'
                     else:
-                        insert_data[j] = float_int_string(
+                        insert_dict[j] = float_int_string(
                             row_value[title_id[j]])
-                        # if type(insert_data[j]) != 'str':
-                        #     insert_data[j] = str(insert_data[j])
-                        if len(insert_data[j]) == 0:
-                            insert_data[j] = '暂无'
+                        if len(insert_dict[j]) == 0:
+                            insert_dict[j] = '暂无'
 
-                sql_person = 'insert into person_'+year_select + \
-                    ' (person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume) values (?,?,?,?,?,?,?,?,?)'
-                db.execute(sql_person,
-                           (insert_data[0], insert_data[1], insert_data[2], insert_data[3], insert_data[4],
-                            insert_data[5], insert_data[6], insert_data[7], insert_data[8]))
-                person_id = db.execute(
-                    'select person_id from person_'+year_select+' where person_name = ?', (insert_data[0],)).fetchone()['person_id']
+                item_person = get_item_list('person')
+                insert_table('person', year_select, item_person, insert_dict)
 
-                sql_education = 'insert into education_'+year_select + \
-                    ' (edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,person_id) values (?,?,?,?,?,?,?,?,?)'
-                db.execute(sql_education,
-                           (insert_data[9], insert_data[10], insert_data[11], insert_data[12], insert_data[13],
-                            insert_data[14], insert_data[15], insert_data[16], person_id))
+                person_id = select_table('person', year_select, {'person_id': 'person'}, {
+                                         'person_name': insert_dict['person_name']})['person_id']
+                insert_dict['person_id'] = float_int_string(person_id)
 
-                sql_skill = 'insert into skill_'+year_select + \
-                    ' (skill_title,time_skill,skill_unit,skill_number,person_id) values (?,?,?,?,?)'
-                db.execute(sql_skill,
-                           (insert_data[17], insert_data[18], insert_data[19], insert_data[20], person_id))
+                item_education = get_item_list('education')
+                item_education.append('person_id')
+                insert_table('education', year_select,
+                             item_education, insert_dict)
 
-                sql_workinfo = 'insert into workinfo_'+year_select + \
-                    ' (time_school,work_kind,job_post,time_retire,person_id) values (?,?,?,?,?)'
-                db.execute(sql_workinfo,
-                           (insert_data[21], insert_data[22],
-                            insert_data[23], insert_data[24], person_id))
-                db.commit()
+                item_skill = get_item_list('skill')
+                item_skill.append('person_id')
+                insert_table('skill', year_select, item_skill, insert_dict)
+
+                item_workinfo = get_item_list('workinfo')
+                item_workinfo.append('person_id')
+                insert_table('workinfo', year_select,
+                             item_workinfo, insert_dict)
 
             os.remove(upload_path)
 
@@ -188,84 +178,56 @@ def importData():
 @bp.route('/search', methods=('GET', 'POST'))
 def search():
     person_id = request.args.get('id', 0, type=int)
-    db = get_lijing_db()
-
-    data = {}
     year = session['year_current']
-    person = 'person_'+year
-    education = 'education_'+year
-    skill = 'skill_'+year
-    workinfo = 'workinfo_'+year
-    result = db.execute('select person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume,\
-        edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,\
-        skill_title,time_skill,skill_unit,skill_number,\
-        time_school,work_kind,job_post,time_retire \
-        from '+person+' join '+education+', '+skill+', '+workinfo+' \
-        on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and '+person+'.person_id = '+workinfo+'.person_id \
-        where '+person+'.person_id = ?', (person_id,)).fetchall()
 
-    row = result[0]
+    item = {}
+    table = ['person', 'education', 'skill', 'workinfo']
+    for table_name in table:
+        item_list = get_item_list(table_name)
+        for i in item_list:
+            item[i] = table_name
 
-    item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-            "skill_title", "time_skill", "skill_unit", "skill_number",
-            "time_school", "work_kind", "job_post", "time_retire"]
+    condition = 'person_' + year + '.person_id'
+    result = select_table(['person', 'education', 'skill', 'workinfo'],
+                          year, item, {condition: '=\''+float_int_string(person_id)+'\''})
 
-    for i in range(len(row)):
-        data[item[i]] = row[item[i]]
 
-    return jsonify(data)
+    return jsonify(result)
 
 
 @bp.route('/add_data', methods=('GET', 'POST'))
 def add_data():
-    insert_data = [0 for i in range(25)]
-    item = ['person_name', "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
-            "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
-            "skill_title", "time_skill", "skill_unit", "skill_number",
-            "time_school", "work_kind", "job_post", "time_retire"]
+    insert_dict = {}
 
-    for i in range(0, len(item)):
-        insert_data[i] = request.args.get(item[i], '暂无', type=str)
-        if insert_data[i] == '':
-            insert_data[i] = '暂无'
+    item = get_item_list(['person', 'education', 'skill', 'workinfo'])
 
-    db = get_lijing_db()
-    sql_person = 'insert into person_' + \
-        session['year_current'] + \
-        ' (person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume) values (?,?,?,?,?,?,?,?,?)'
-    db.execute(sql_person,
-               (insert_data[0], insert_data[1], insert_data[2], insert_data[3], insert_data[4],
-                insert_data[5], insert_data[6], insert_data[7], insert_data[8]))
-    person_id = db.execute(
-        'select person_id from person_'+session['year_current']+' where id_number=?', (insert_data[2],)).fetchone()
+    year_select = session['year_current']
 
-    sql_education = 'insert into education_' + \
-        session['year_current'] + \
-        ' (edu_start,time_edu_start,school_edu_start,major_edu_start,edu_end,time_edu_end,school_edu_end,major_edu_end,person_id) values (?,?,?,?,?,?,?,?,?)'
-    db.execute(sql_education,
-               (insert_data[9], insert_data[10], insert_data[11], insert_data[12], insert_data[13],
-                insert_data[14], insert_data[15], insert_data[16], person_id[0]))
+    for i in item:
+        insert_dict[i] = request.args.get(i, '暂无', type=str)
+        if insert_dict[i] == '':
+            insert_dict[i] = '暂无'
 
-    sql_skill = 'insert into skill_' + \
-        session['year_current'] + \
-        ' (skill_title,time_skill,skill_unit,skill_number,person_id) values (?,?,?,?,?)'
-    db.execute(sql_skill,
-               (insert_data[17], insert_data[18], insert_data[19], insert_data[20], person_id[0]))
+    item_person = get_item_list('person')
+    insert_table('person', year_select, item_person, insert_dict)
 
-    sql_workinfo = 'insert into workinfo_' + \
-        session['year_current'] + \
-        ' (time_school,work_kind,job_post,time_retire,person_id) values (?,?,?,?,?)'
-    db.execute(sql_workinfo,
-               (insert_data[21], insert_data[22],
-                insert_data[23], insert_data[24], person_id[0]))
-    db.commit()
+    person_id = select_table('person', year_select, {'person_id': 'person'}, {'person_name': insert_dict['person_name']})['person_id']
+    insert_dict['person_id'] = float_int_string(person_id)
 
-    msg = '成功添加教师' + insert_data[0] + '的信息'
+    item_education = get_item_list('education')
+    item_education.append('person_id')
+    insert_table('education', year_select, item_education, insert_dict)
 
-    # return redirect(url_for('lijing.basicInfo'))
-    # return render_template('lijing/basicInfo.html')
-    return {'msg': msg}
+    item_skill = get_item_list('skill')
+    item_skill.append('person_id')
+    insert_table('skill', year_select, item_skill, insert_dict)
+
+    item_workinfo = get_item_list('workinfo')
+    item_workinfo.append('person_id')
+    insert_table('workinfo', year_select, item_workinfo, insert_dict)
+
+    msg = '成功添加教师' + insert_dict['person_name'] + '的信息'
+    return jsonify({'msg': msg})
 
 
 @bp.route('/update_data', methods=('GET', 'POST'))
@@ -286,6 +248,7 @@ def update_data():
     print(person_id)
 
     db = get_lijing_db()
+    # update_table('person', year, item_person, update_dict)
     sql_person = 'update person_' + \
         session['year_current'] + \
         ' set person_name = ?,gender = ?,id_number = ?,phone = ?,political_status = ?,time_Party = ?,time_work = ?,address = ?,resume = ? where person_id = ?'
@@ -325,28 +288,16 @@ def search_data():
 
     db = get_lijing_db()
     year = session['year_current']
-    person = 'person_'+year
-    education = 'education_'+year
-    skill = 'skill_'+year
-    workinfo = 'workinfo_'+year
-    # sql = 'select '+person+'.person_id, '+person+'.person_name, '+person+'.gender from '+person+' join '+education+', '+skill+', '+workinfo + \
-    #     ' on '+person+'.person_id = '+education+'.person_id and '+person+'.person_id = '+skill+'.person_id and ' + \
-    #     person+'.person_id = '+workinfo+'.person_id where ' + \
-    #     search_item + ' like \'%' + search_string + '%\';'
-    sql = 'select p.person_id, p.person_name, p.gender from '+person+' as p join '+education+' as e on p.person_id = e.person_id join ' + skill + \
-        ' as s on p.person_id = s.person_id join '+workinfo + \
-        ' as w on p.person_id = w.person_id where ' + \
-        search_item + ' like \'%' + search_string + '%\';'
 
-    result = db.execute(sql).fetchall()
 
+    result = select_table(['person', 'education', 'skill', 'workinfo'], year, {
+        'person_id': 'person', 'person_name': 'person', 'gender': 'person'}, {search_item: ' like \'%'+search_string+'%\''})
+    print(result)
     data = []
-    for row in result:
-        d = {}
-        d['id'] = row['person_id']
-        d['name'] = row['person_name']
-        d['gender'] = row['gender']
-        data.append(d)
+    if type(result) == dict:
+        data.append(result)
+    else:
+        data = result
 
     msg = '成功查询到'+str(len(data))+'条信息'
 

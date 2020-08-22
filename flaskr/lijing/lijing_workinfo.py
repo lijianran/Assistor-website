@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
 
-from flaskr.db import get_db, get_lijing_db
+from flaskr.db import get_db, get_lijing_db, create_table
 
 from flaskr.lijing.lijing_index import float_int_string
 
@@ -41,23 +41,25 @@ def hello():
     flag_table = db.execute(
         'select workinfo from year_list where year = ?', (year_list[0], )).fetchone()['workinfo']
     if flag_table == 0:
-        sql_data = {}
-        with open('flaskr\sql_lijing.json', 'r') as f:
-            sql_data = json.load(f)
-            sql_create = ['', '', '', '', '']
-            sql_create[0] = 'CREATE TABLE school_' + \
-                session['year_current'] + sql_data['school']
-            sql_create[1] = 'CREATE TABLE job_' + \
-                session['year_current']+sql_data['job']
-            sql_create[2] = 'CREATE TABLE class_' + \
-                session['year_current']+sql_data['class']
-            sql_create[3] = 'CREATE TABLE rank_' + \
-                session['year_current']+sql_data['rank']
-            sql_create[4] = 'CREATE TABLE workload_' + \
-                session['year_current']+sql_data['workload']
+        # sql_data = {}
+        # with open('flaskr\sql_lijing.json', 'r') as f:
+        #     sql_data = json.load(f)
+        #     sql_create = ['', '', '', '', '']
+        #     sql_create[0] = 'CREATE TABLE school_' + \
+        #         session['year_current'] + sql_data['school']
+        #     sql_create[1] = 'CREATE TABLE job_' + \
+        #         session['year_current']+sql_data['job']
+        #     sql_create[2] = 'CREATE TABLE class_' + \
+        #         session['year_current']+sql_data['class']
+        #     sql_create[3] = 'CREATE TABLE rank_' + \
+        #         session['year_current']+sql_data['rank']
+        #     sql_create[4] = 'CREATE TABLE workload_' + \
+        #         session['year_current']+sql_data['workload']
 
-        for sql in sql_create:
-            db.execute(sql)
+        # for sql in sql_create:
+        #     db.execute(sql)
+        create_table(['school','job','class','rank','workload'], session['year_current'])
+
         db.execute('insert into school_' +
                    session['year_current']+' (school_name) values (?)', ('暂无分校', ))
         db.execute('update year_list set workinfo = 1 where year = ?',
@@ -164,23 +166,24 @@ def add_school():
     db.execute(sql_school, (school_name,))
     db.commit()
 
-    school_list = []
+    school_dict = {}
     school_data = db.execute(
-        'select school_name from school_'+year_select).fetchall()
+        'select school_id, school_name from school_'+year_select).fetchall()
     for i in school_data:
-        school_list.append(i['school_name'])
+        school_dict[i['school_name']] = i['school_id']
 
     class_list = {}
-    for i in range(len(school_list)):
+    for i in school_dict:
         class_data = db.execute('select class_name from class_' +
-                                year_select+' where school_id = ?', (i+1,)).fetchall()
+                                year_select+' where school_id = ?', (school_dict[i], )).fetchall()
         clas = []
         for j in class_data:
             clas.append(j['class_name'])
 
-        class_list[str(school_list[i])] = clas
+        class_list[str(i)] = clas
 
-    if len(school_list) != 1:
+    school_list = list(school_dict.keys())
+    if len(school_dict.keys()) != 1:
         school_list = school_list[1:]
         del class_list['暂无分校']
 
@@ -219,27 +222,134 @@ def add_class():
     db.execute(sql_class, (class_name, school_id, person_data['person_id'], ))
     db.commit()
 
-    school_list = []
+    school_dict = {}
     school_data = db.execute(
-        'select school_name from school_'+year_select).fetchall()
+        'select school_id, school_name from school_'+year_select).fetchall()
     for i in school_data:
-        school_list.append(i['school_name'])
+        school_dict[i['school_name']] = i['school_id']
 
     class_lists = {}
-    for i in range(len(school_list)):
+    for i in school_dict:
         class_data = db.execute('select class_name from class_' +
-                                year_select+' where school_id = ?', (i+1,)).fetchall()
+                                year_select+' where school_id = ?', (school_dict[i], )).fetchall()
         clas = []
         for j in class_data:
             clas.append(j['class_name'])
 
-        class_lists[str(school_list[i])] = clas
+        class_lists[str(i)] = clas
 
-    if len(school_list) != 1:
+    school_list = list(school_dict.keys())
+    if len(school_dict.keys()) != 1:
         school_list = school_list[1:]
         del class_lists['暂无分校']
 
     return jsonify({'msg': '成功添加班级', 'school_list': school_list, 'class_list': class_lists})
+
+
+@bp.route('/del_school', methods=('GET', 'POST'))
+def del_school():
+    school_name = request.args.get('school')
+    year_select = request.args.get('year')
+
+    db = get_lijing_db()
+
+    school_data = db.execute(
+        'select school_name from school_'+year_select).fetchall()
+    school_list = []
+    for s in school_data:
+        school_list.append(s['school_name'])
+    if school_name not in school_list:
+        return jsonify({'msg': 'error', 'error': '分校 “'+school_name+'” 不存在'})
+
+    school_id = db.execute('select school_id from school_'+year_select +
+                           ' where school_name = ?', (school_name, )).fetchone()['school_id']
+
+    if db.execute('select person_id from job_'+year_select+' where school_id = ?', (school_id, )).fetchone() is not None:
+        return jsonify({'msg': 'error', 'error': '存在教师属于分校 “'+school_name+'” ，删除分校失败'})
+
+    sql_class = 'delete from class_' + \
+        year_select + ' where school_id = ?'
+    sql_school = 'delete from school_' + \
+        year_select + ' where school_name = ?'
+    db.execute(sql_class, (school_id, ))
+    db.execute(sql_school, (school_name, ))
+    db.commit()
+
+    school_dict = {}
+    school_data = db.execute(
+        'select school_id, school_name from school_'+year_select).fetchall()
+    for i in school_data:
+        school_dict[i['school_name']] = i['school_id']
+
+    class_list = {}
+    for i in school_dict:
+        class_data = db.execute('select class_name from class_' +
+                                year_select+' where school_id = ?', (school_dict[i], )).fetchall()
+        clas = []
+        for j in class_data:
+            clas.append(j['class_name'])
+
+        class_list[str(i)] = clas
+
+    school_list = list(school_dict.keys())
+    if len(school_dict.keys()) != 1:
+        school_list = school_list[1:]
+        del class_list['暂无分校']
+
+    return jsonify({'msg': '成功删除分校：' + school_name, 'school_list': school_list, 'class_list': class_list})
+
+
+@bp.route('/del_class', methods=('GET', 'POST'))
+def del_class():
+    year_select = request.args.get('year')
+    school_name = request.args.get('school')
+    class_name = request.args.get('class')
+
+    db = get_lijing_db()
+
+    school_id = db.execute('select school_id from school_'+year_select +
+                           ' where school_name = ?', (school_name, )).fetchone()['school_id']
+
+    class_id_data = db.execute('select class_id from class_'+year_select +
+                               ' where school_id = ? and class_name = ?', (school_id, class_name, )).fetchone()
+    if class_id_data is None:
+        return jsonify({'msg': 'error', 'error': '分校 “'+school_name+'” 中不存在'+class_name+'班，删除班级失败'})
+
+    class_id = class_id_data['class_id']
+
+    rank_data = db.execute('select person_id from rank_' +
+                           year_select+' where class_id = ?', (class_id, )).fetchone()
+    if rank_data is not None:
+        return jsonify({'msg': 'error', 'error': '存在教师在班级 “'+class_name+'” 中任课，删除班级失败'})
+
+    sql_class = 'delete from class_' + \
+        year_select + ' where class_id = ?'
+    db.execute(sql_class, (class_id, ))
+    db.commit()
+
+    school_dict = {}
+    school_data = db.execute(
+        'select school_id, school_name from school_'+year_select).fetchall()
+    for i in school_data:
+        school_dict[i['school_name']] = i['school_id']
+
+    class_list = {}
+    for i in school_dict:
+        class_data = db.execute('select class_name from class_' +
+                                year_select+' where school_id = ?', (school_dict[i], )).fetchall()
+        clas = []
+        for j in class_data:
+            clas.append(j['class_name'])
+
+        class_list[str(i)] = clas
+
+    school_list = list(school_dict.keys())
+    if len(school_dict.keys()) != 1:
+        school_list = school_list[1:]
+        del class_list['暂无分校']
+
+
+    return jsonify({'msg': '成功删除班级：' + class_name, 'school_list': school_list, 'class_list': class_list})
 
 
 @bp.route('/readfile', methods=('GET', 'POST'))
@@ -615,6 +725,29 @@ def update_data():
 
     db.commit()
     return jsonify({'msg': '成功更新教师“' + update_data['person_name'] + '”的业务档案'})
+
+
+@ bp.route('/delete_data', methods=('GET', 'POST'))
+def delete_data():
+
+    person_id = int(request.args.get('person_id'))
+    class_name = request.args.get('class_name')
+    subject = request.args.get('subject')
+
+    db = get_lijing_db()
+    year = session['year_current']
+
+    class_id = db.execute('select class_id from class_'+year +
+                          ' where class_name = ?', (class_name, )).fetchone()['class_id']
+
+    db.execute('delete from rank_'+year+' where person_id = ? and class_id = ? and subject = ?',
+               (person_id, class_id, subject, ))
+    db.commit()
+
+    person_name = db.execute('select person_name from person_'+year +
+                             ' where person_id = ?', (person_id, )).fetchone()['person_name']
+
+    return jsonify({'msg': '成功删除记录（' + person_name + '，'+class_name+'班，' + subject + '）'})
 
 
 @ bp.route('/search_data', methods=('GET', 'POST'))

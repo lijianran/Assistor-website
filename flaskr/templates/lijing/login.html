@@ -41,25 +41,31 @@
 <body class="text-center">
 
   <form class="form-signin" action="{{ url_for('auth.login') }}" method="POST">
+
     <img class="mb-4" src="../../static/bootstrap-solid.svg" alt="" width="72" height="72">
     <h1 class="h1 mb-3 font-weight-normal">崇阳县大集中学</h1>
     <h1 class="h2 mb-3 font-weight-normal">教务管理系统</h1>
     <hr>
+
     <!-- <h2 class="h3 mb-3 font-weight-normal">请登录</h2> -->
     {% for message in get_flashed_messages() %}
     <div class="alert alert-warning flash">{{ message }}</div>
     {% endfor %}
+
     <label for="inputEmail" class="sr-only">账号</label>
     <input name="username" type="text" id="inputEmail" class="form-control" placeholder="Username" required autofocus>
+
     <label for="inputPassword" class="sr-only">密码</label>
     <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+
     <div class="checkbox mb-3">
       <label>
         <input type="checkbox" value="remember-me"> 记住我
       </label>
     </div>
+    
     <button class="btn btn-lg btn-primary btn-block" type="submit">登陆</button>
-    <p class="mt-5 mb-3 text-muted">&copy; 2017-2020</p>
+    <p class="mt-5 mb-3 text-muted">&copy; 2016-2020</p>
   </form>
 </body>
 

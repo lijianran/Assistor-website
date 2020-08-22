@@ -6,6 +6,9 @@ from flask.cli import with_appcontext
 
 import os
 
+import json
+
+
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
@@ -16,17 +19,20 @@ def get_db():
 
     return g.db
 
+
 def close_db(e=None):
     db = g.pop('db', None)
 
     if db is not None:
         db.close()
 
+
 def init_db():
     db = get_db()
 
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
+
 
 @click.command('init-db')
 @with_appcontext
@@ -35,6 +41,7 @@ def init_db_command():
     click.echo('Initialized the database.')
 
 ########################################################
+
 
 def get_lijing_db():
     if 'lijing_db' not in g:
@@ -46,11 +53,13 @@ def get_lijing_db():
 
     return g.lijing_db
 
+
 def close_lijing_db(e=None):
     db = g.pop('lijing_db', None)
 
     if db is not None:
         db.close()
+
 
 def init_lijing_db():
     db = get_lijing_db()
@@ -58,13 +67,12 @@ def init_lijing_db():
     with current_app.open_resource('lijing.sql') as f:
         db.executescript(f.read().decode('utf8'))
 
+
 @click.command('init-lijing-db')
 @with_appcontext
 def init_lijing_db_command():
     init_lijing_db()
     click.echo('Initialized the lijing database.')
-
-
 
 
 ########################################################
@@ -74,3 +82,177 @@ def init_app(app):
     app.teardown_appcontext(close_lijing_db)
     app.cli.add_command(init_db_command)
     app.cli.add_command(init_lijing_db_command)
+
+
+########################################################
+
+def create_table(table_list, year):
+    for table in table_list:
+        table_name = table+'_'+year
+
+        sql_data = {}
+        with open('flaskr\\lijing_table.json', 'r') as f:
+            sql_data = json.load(f)
+
+        item_list = []
+
+        for item in sql_data[table]:
+            for item_name in item:
+                if item_name == 'foreign_key':
+                    foreign_key_list = item['foreign_key']
+
+                    item_list.append(
+                        'FOREIGN KEY('+foreign_key_list[0]+') REFERENCES '+foreign_key_list[1]+'_'+year+'('+foreign_key_list[2]+')')
+                    # FOREIGN KEY(person_id) REFERENCES person(person_id)
+                elif item_name == 'primary_key':
+                    item_list.append('PRIMARY KEY'+str(item[item_name]))
+                else:
+                    item_list.append(str(item_name)+' '+str(item[item_name]))
+
+        item_string = ', '.join(item_list)
+
+        sql_create = 'CREATE TABLE '+table_name+'('+item_string+')'
+
+        print(sql_create)
+
+        db = get_lijing_db()
+        db.execute(sql_create)
+        db.commit()
+
+
+def insert_table(table, year, insert_item, insert_dict):
+    table_name = table+'_'+year
+
+    item_data = []
+
+    for item in insert_item:
+        item_data.append('\''+insert_dict[item]+'\'')
+
+    sql_insert = 'INSERT INTO '+table_name + \
+        '('+', '.join(insert_item)+') VALUES ('+', '.join(item_data)+')'
+    # ' (person_name,gender,id_number,phone,political_status,time_Party,time_work,address,resume) values (?,?,?,?,?,?,?,?,?)'
+
+    db = get_lijing_db()
+    db.execute(sql_insert)
+    db.commit()
+
+
+def select_table(table, year, select_item, condition_dict=None):
+    if type(table) == str:
+        #### 单表查询
+        table_name = table+'_'+year
+        print('hello')
+        select_string_list = []
+        for item in select_item:
+            select_table_name = select_item[item]+'_'+year
+            select_string_list.append(select_table_name+'.'+item)
+
+        select_string = ', '.join(select_string_list)
+
+        print(select_string)
+        if condition_dict != None:
+            condition_data = []
+            for item in condition_dict:
+                condition_data.append(
+                    item + ' = \'' + condition_dict[item] + '\'')
+
+            sql_select = 'SELECT '+select_string+' FROM ' + \
+                table_name+' WHERE '+' AND '.join(condition_data)
+        else:
+            sql_select = 'SELECT '+select_string+' FROM ' + table_name
+
+        print(sql_select)
+        db = get_lijing_db()
+        results = db.execute(sql_select).fetchall()
+
+        result_list = []
+        for result in results:
+            result_dict = {}
+            for item in select_item:
+                result_dict[item] = result[item]
+
+            result_list.append(result_dict)
+
+        if len(result_list) == 1:
+            return result_list[0]
+        else:
+            return result_list
+    else:
+        #### 多表查询
+        select_string_list = []
+        for item in select_item:
+            select_table_name = select_item[item]+'_'+year
+            select_string_list.append(select_table_name+'.'+item)
+
+        select_string = ', '.join(select_string_list)
+
+        sql_data = {}
+        with open('flaskr\\lijing_table.json', 'r') as f:
+            sql_data = json.load(f)
+
+        # print(table)
+
+        join_list = []
+        for table_name in table:
+            flag = False
+            for item in sql_data[table_name]:
+                
+                if 'foreign_key' in item:
+                    table1 = table_name+'_'+year
+                    key1 = item['foreign_key'][0]
+                    table2 = item['foreign_key'][1] + '_'+year
+                    key2 = item['foreign_key'][2]
+                    join_string = 'JOIN '+table1+' ON '+table1+'.'+key1+' = '+table2+'.'+key2
+
+                    flag = True
+                    join_list.append(join_string)
+            
+            if not flag:
+                join_list.insert(0, table_name+'_'+year)
+
+        if condition_dict != None:
+            condition_data = []
+            for item in condition_dict:
+                condition_data.append(item + condition_dict[item])
+
+            sql_select = 'SELECT '+select_string+' FROM ' + ' '.join(join_list)+' WHERE '+' AND '.join(condition_data)
+        else:
+            sql_select = 'SELECT '+select_string+' FROM ' + ' '.join(join_list)
+
+        print(sql_select)
+        db = get_lijing_db()
+        results = db.execute(sql_select).fetchall()
+
+        result_list = []
+        for result in results:
+            result_dict = {}
+            for item in select_item:
+                result_dict[item] = result[item]
+
+            result_list.append(result_dict)
+
+        if len(result_list) == 1:
+            return result_list[0]
+        else:
+            return result_list
+
+
+def get_item_list(table):
+    item_list = []
+
+    item_list_dict = {
+        'person': ['person_name', 'gender', 'id_number', 'phone', 'political_status', 'time_Party', 'time_work', 'address', 'resume'],
+        'education': ['edu_start', 'time_edu_start', 'school_edu_start', 'major_edu_start', 'edu_end', 'time_edu_end', 'school_edu_end', 'major_edu_end'],
+        'skill': ['skill_title', 'time_skill', 'skill_unit', 'skill_number'],
+        'workinfo': ['time_school', 'work_kind', 'job_post', 'time_retire']
+    }
+    if type(table) == list:
+        for table_name in table:
+            if table_name in item_list_dict:
+                item_list = item_list + list(item_list_dict[table_name])
+    elif type(table) == str:
+        item_list = item_list_dict[table]
+    else:
+        pass
+
+    return item_list

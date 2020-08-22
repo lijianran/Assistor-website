@@ -26,6 +26,7 @@ bp = Blueprint('lijing_search', __name__, url_prefix='/lijing_search')
 def hello():
     db = get_lijing_db()
 
+
     year_data = db.execute('select year from year_list').fetchall()
     year_list = []
     if len(year_data) == 0:

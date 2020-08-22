@@ -1,26 +1,23 @@
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, session, send_file, send_from_directory
 )
-# from werkzeug.exceptions import abort
-# from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
 
-# from flaskr.db import get_db, get_lijing_db
-
-# from random import choice
 import os
-# import xlrd
-# import xlsxwriter
-# import json
-# import datetime
-# from pypinyin import lazy_pinyin
+
+from flaskr.db import get_db, get_lijing_db, create_table, insert_table, select_table
 
 bp = Blueprint('lijing', __name__, url_prefix='/lijing')
 
 
 @bp.route('/')
 def index():
+    # create_table(['person','education','workinfo','skill'], '2020')
+    # insert_table('person', '2020', {'person_name': 'lijianran', 'gender': '22', 'id_number': '421223', 'phone': '156',
+    #                                 'political_status': '群众', 'time_Party': '暂无', 'time_work': '2020', 'address': '暂无', 'resume': '暂无'})
+    select_table('person', '2020', {'person_id': 'person'}, {'gender': '男'})
+    # select_table(['person','education','class'], '2023', {'person_id': 'person'}, {'gender': '男'})
     return render_template('lijing/login.html')
 
 
@@ -56,8 +53,7 @@ def download_excel_file(excel_filename):
 def set_year():
     year = request.args.get('year')
     session['year_current'] = year
-    msg = 'success'
-    return jsonify({'msg': msg})
+    return jsonify({'msg': 'success'})
 
 
 def float_int_string(float_num):

@@ -1,6 +1,6 @@
 {% extends 'base_lijing.html' %}
 
-<h1>{% block title %}basic{% endblock %}</h1>
+{% block title %}basic{% endblock %}
 
 
 {# {% block tools %}
@@ -400,6 +400,7 @@
 
             <!-- 模态框底部 -->
             <div class="modal-footer">
+                <button type="button" id="export_all" class="btn btn-primary" onclick="export_all()">全选</button>
                 <button type="button" id="export_table" class="btn btn-primary" onclick="export_table()">导出</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
             </div>
@@ -433,7 +434,7 @@
 
         for (var i in item) {
             var board = document.getElementById("radios");
-            radio_id = "radio_" + item[i];
+            var radio_id = "radio_" + item[i];
 
             var d = document.createElement("div");
             d.className = "custom-control custom-checkbox custom-control-inline col-md-3";
@@ -476,9 +477,9 @@
 
     window.operateEvents = {
         'click .detail': function (e, value, row, index) {
-            document.getElementById("detail_modal_title").innerHTML = row.name + "--基本信息";
+            document.getElementById("detail_modal_title").innerHTML = row.person_name + "--基本信息";
 
-            $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search', { id: row.id }, function (data) {
+            $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search', { id: row.person_id }, function (data) {
                 var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
                     "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
                     "skill_title", "time_skill", "skill_unit", "skill_number",
@@ -497,9 +498,9 @@
 
         },
         'click .update': function (e, value, row, index) {
-            update_person_id = row.id;
+            update_person_id = row.person_id;
 
-            $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search', { id: row.id }, function (data) {
+            $.getJSON($SCRIPT_ROOT + '/lijing_basicinfo/search', { id: row.person_id }, function (data) {
                 var item = ["person_name", "gender", "id_number", "phone", "political_status", "time_Party", "time_work", "address", "resume",
                     "edu_start", "time_edu_start", "school_edu_start", "major_edu_start", "edu_end", "time_edu_end", "school_edu_end", "major_edu_end",
                     "skill_title", "time_skill", "skill_unit", "skill_number",
@@ -511,7 +512,7 @@
 
             document.getElementById("button_update").style.display = "block";
             document.getElementById("button_add").style.display = "none";
-            document.getElementById("detail_modal_title").innerHTML = '修改教师"' + row.name + '"的基本信息';
+            document.getElementById("detail_modal_title").innerHTML = '修改教师"' + row.person_name + '"的基本信息';
             $("#detailModal input").attr("readOnly", false);
             $("#resume").attr("readOnly", false);
             $("#detailModal").modal("show");
@@ -520,7 +521,7 @@
         },
         'click .remove': function (e, value, row, index) {
             window.alert("待开发");
-            //$table.bootstrapTable('remove', {field: 'id',values: [row.id]})
+            //$table.bootstrapTable('remove', {field: 'id',values: [row.person_id]})
         }
     }
 
@@ -555,11 +556,11 @@
                 //    checkbox: false  //第一列显示复选框
                 //},
                 {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
-                    field: 'id',
+                    field: 'person_id',
                     title: '编号',
                     align: 'center',  //对齐方式，居中 
                 }, {
-                    field: 'name',
+                    field: 'person_name',
                     title: '姓名',
                     align: 'center'
                 }, {
@@ -615,7 +616,7 @@
             "skill_title", "time_skill", "skill_unit", "skill_number",
             "time_school", "work_kind", "job_post", "time_retire"];
 
-        for (i = 0; i < item.length; i++) {
+        for (var i = 0; i < item.length; i++) {
             datas[item[i]] = document.getElementById(item[i]).value;
         }
 
@@ -653,7 +654,6 @@
             return;
         }
 
-        document.getElementById("select_year").disabled = true;
         var index = document.getElementById("search_select").selectedIndex;
         var search_item = document.getElementById("search_select").options[index].value;
 
@@ -668,6 +668,7 @@
             document.getElementById("success_msg").innerHTML = return_data.msg;
 
             flag_search = true;
+            document.getElementById("select_year").disabled = true;
             document.getElementById("origin_button").style.display = "block";
             //$('#export_button').removeClass('disabled');
             $("#table").bootstrapTable("destroy");
@@ -702,11 +703,11 @@
                     //    checkbox: false  //第一列显示复选框
                     //},
                     {  //定义表头,这个表头必须定义,下边field后边跟的字段名字必须与后端传递的字段名字相同.如:id、name、price跟后端的字段名id  name price是完全一样的.
-                        field: 'id',
+                        field: 'person_id',
                         title: '编号',
                         align: 'center',  //对齐方式，居中 
                     }, {
-                        field: 'name',
+                        field: 'person_name',
                         title: '姓名',
                         align: 'center'
                     }, {
@@ -750,7 +751,7 @@
         var table_data = $('#table').bootstrapTable('getData');
 
         for (var i = 0; i < table_data.length; i++) {
-            id_list.push(table_data[i].id);
+            id_list.push(table_data[i].person_id);
         }
 
         var datas = {};
@@ -781,6 +782,21 @@
             //$("#detailModal").modal("hide");
             //$("#table").bootstrapTable('refresh');
         });
+    }
+
+    function export_all(){
+        var item = {
+            "姓名": "person_name", "性别": "gender", "身份证号": "id_number", "联系电话": "phone", "政治面貌": "political_status", "入党时间": "time_Party", "参加工作时间": "time_work", "家庭住址": "address", "个人简历": "resume",
+            "第一学历": "edu_start", "第一学历毕业时间": "time_edu_start", "第一学历毕业学校": "school_edu_start", "第一学历专业": "major_edu_start", "最高学历": "edu_end", "最高学历毕业时间": "time_edu_end", "最高学历毕业学校": "school_edu_end", "最高学历专业": "major_edu_end",
+            "专业技术职称": "skill_title", "职称取得时间": "time_skill", "职称发证单位": "skill_unit", "发证文件批号": "skill_number",
+            "调入大集中学时间": "time_school", "用工性质": "work_kind", "工作岗位": "job_post", "退休时间": "time_retire"
+        };
+
+        for (var i in item) {
+            var radio_id = "radio_" + item[i];
+            document.getElementById(radio_id).checked = true;
+        }
+
     }
 
     function test_data(code) {

@@ -112,3 +112,55 @@
 
 </div>
 {% endblock %}
+
+
+
+{% block content %}
+<div class="row" id="search_bar">
+    <div class="input-group mb-3 col-md-5">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="select_year">年份</label>
+        </div>
+        <select class="custom-select" id="select_year">
+            {% for year in year_list %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2"></div>
+    <div class="input-group mb-3 col-md-5">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="select_year">分校</label>
+        </div>
+        <select class="custom-select" id="select_year">
+            {% for year in year_list %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <!-- <div class="input-group mb-3 col-md-8">
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_school_select">
+                <option>全部数据</option>
+                {% for school in school_list %}
+                <option>{{ school }}</option>
+                {% endfor %}
+            </select>
+
+        </div>
+        <div class="input-group-prepend">
+            <select class="custom-select" id="search_select">
+
+                
+            </select>
+        </div>
+        <input type="text" class="form-control" aria-label="Text input with dropdown button" id="search_string">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="search_data()">搜索</button>
+        </div>
+    </div> -->
+</div>
+
+
+
+{% endblock %}

@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
 
-from flaskr.db import get_db, get_lijing_db
+from flaskr.db import get_db, get_lijing_db, create_table
 
 from flaskr.lijing.lijing_index import float_int_string
 
@@ -41,14 +41,16 @@ def hello():
     flag_table = db.execute(
         'select honorinfo from year_list where year = ?', (year_list[0], )).fetchone()['honorinfo']
     if flag_table == 0:
-        sql_data = {}
-        with open('flaskr\sql_lijing.json', 'r') as f:
-            sql_data = json.load(f)
+        # sql_data = {}
+        # with open('flaskr\sql_lijing.json', 'r') as f:
+        #     sql_data = json.load(f)
 
-        sql_create = 'CREATE TABLE honor_' + \
-            session['year_current'] + sql_data['honor']
+        # sql_create = 'CREATE TABLE honor_' + \
+        #     session['year_current'] + sql_data['honor']
 
-        db.execute(sql_create)
+        # db.execute(sql_create)
+
+        create_table(['honor'], session['year_current'])
 
         db.execute('update year_list set honorinfo = 1 where year = ?',
                    (session['year_current'], ))

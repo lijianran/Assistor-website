@@ -15,7 +15,7 @@
 
   <!-- Bootstrap core CSS -->
   <!-- <link href="../assets/dist/css/bootstrap.css" rel="stylesheet"> -->
-  <link href="../static/bootstrap-4.4.1-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/bootstrap-4.4.1-dist/css/bootstrap.css" rel="stylesheet">
 
   <link href="../static/fontawesome-free-5.11.2-web/css/all.css" rel="stylesheet">
   <link href="../static/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
@@ -147,8 +147,8 @@
   <!-- <link href="dashboard.css" rel="stylesheet"> -->
   <link href="../static/dashboard.css" rel="stylesheet">
   <link href="../static/style.css" rel="stylesheet">
-
 </head>
+
 
 <body>
   <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
@@ -160,7 +160,7 @@
     <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap">
-        <a class="nav-link" href="{{ url_for('auth.logout') }}">退出登陆{{ g.user['users_id'] }}</a>
+        <a class="nav-link" href="{{ url_for('auth.logout') }}">退出登陆{#{ g.user['users_id'] }#}</a>
       </li>
     </ul>
   </nav>
@@ -171,6 +171,7 @@
 
       <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
         {% block sidebar %}
+
         <div class="sidebar-sticky pt-3">
           <ul class="nav flex-column">
             <li class="nav-item">
@@ -218,7 +219,7 @@
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ url_for('lijing_search.hello') }}">
                       &nbsp;&nbsp;<span data-feather="file-text"></span>
                       数据检索
                     </a>
@@ -302,13 +303,15 @@
               {% for message in get_flashed_messages() %}
               <div class="alert alert-warning flash">{{ message }}</div>
               {% endfor %}
+
+
               {% block content %}{% endblock %}
             </section>
 
           </div>
           <div class="col-lg-3"></div>
-
-          <!-- <footer class="container">
+        </div>
+        <!-- <footer class="container">
             <p class="float-right"><a href="#">回到顶部</a></p>
             <p>&copy; 2017-2020 Company, Inc. &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></p>
           </footer> -->
@@ -474,9 +477,9 @@
   <script src="../static/bootstrap-4.4.1-dist/js/popper.min.js"></script>
 
   <script src="../static/bootstrap-4.4.1-dist/js/bootstrap.bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script> -->
+  <script src="../static/feather.min.js"></script>
 
-  
   <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
   <script src="../static/bootstrap-4.4.1-dist/js/bootstrap.min.js"></script>
 
@@ -508,8 +511,6 @@
     //});
 
     //document.getElementById("link_basicinfo").classList.add('active');
-
-
 
   </script>
 

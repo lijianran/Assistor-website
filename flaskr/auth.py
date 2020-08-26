@@ -36,11 +36,11 @@ def register():
                 (username, generate_password_hash(password))
             )
             db.commit()
-            return redirect(url_for('auth.login'))
+            return redirect(url_for('lijing.index'))
 
         flash(error)
 
-    return render_template('auth/register.html')
+    return render_template('lijing/register.html')
 
 
 @bp.route('/login', methods=('GET', 'POST'))

@@ -164,3 +164,17 @@
 
 
 {% endblock %}
+
+
+
+{% block files %}
+<script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
+
+<script>
+
+    
+</script>
+
+
+
+{% endblock %}

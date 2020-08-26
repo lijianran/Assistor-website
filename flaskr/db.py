@@ -113,8 +113,6 @@ def create_table(table_list, year):
 
         sql_create = 'CREATE TABLE '+table_name+'('+item_string+')'
 
-        print(sql_create)
-
         db = get_lijing_db()
         db.execute(sql_create)
         db.commit()
@@ -137,6 +135,24 @@ def insert_table(table, year, insert_item, insert_dict):
     db.commit()
 
 
+def update_table(table, year, update_item, update_dict, condition_dict):
+    table_name = table+'_'+year
+
+    item_data = []
+    for item in update_item:
+        item_data.append(str(item)+' = \''+str(update_dict[item])+'\'')
+
+    condition_data = []
+    for item in condition_dict:
+        condition_data.append(item + condition_dict[item])
+
+    sql_update = 'UPDATE '+table_name+' SET '+', '.join(item_data)+' WHERE '+' AND '.join(condition_data)
+    
+    db = get_lijing_db()
+    db.execute(sql_update)
+    db.commit()
+
+
 def select_table(table, year, select_item, condition_dict=None):
     if type(table) == str:
         #### 单表查询
@@ -149,19 +165,16 @@ def select_table(table, year, select_item, condition_dict=None):
 
         select_string = ', '.join(select_string_list)
 
-        print(select_string)
         if condition_dict != None:
             condition_data = []
             for item in condition_dict:
-                condition_data.append(
-                    item + ' = \'' + condition_dict[item] + '\'')
+                condition_data.append(item + condition_dict[item])
 
             sql_select = 'SELECT '+select_string+' FROM ' + \
                 table_name+' WHERE '+' AND '.join(condition_data)
         else:
             sql_select = 'SELECT '+select_string+' FROM ' + table_name
 
-        print(sql_select)
         db = get_lijing_db()
         results = db.execute(sql_select).fetchall()
 
@@ -190,8 +203,6 @@ def select_table(table, year, select_item, condition_dict=None):
         with open('flaskr\\lijing_table.json', 'r') as f:
             sql_data = json.load(f)
 
-        # print(table)
-
         join_list = []
         for table_name in table:
             flag = False
@@ -219,7 +230,6 @@ def select_table(table, year, select_item, condition_dict=None):
         else:
             sql_select = 'SELECT '+select_string+' FROM ' + ' '.join(join_list)
 
-        print(sql_select)
         db = get_lijing_db()
         results = db.execute(sql_select).fetchall()
 
@@ -256,3 +266,11 @@ def get_item_list(table):
         pass
 
     return item_list
+
+
+def float_int_string(float_num):
+    if type(float_num) != str:
+        float_num = str(int(float_num))
+    return float_num
+
+

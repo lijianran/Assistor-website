@@ -354,10 +354,10 @@ def exportData():
         table_data.append(row)
 
     item_name_dict = {
-        'person_name': '姓名', "gender": '性别', "id_number": '身份证号', "phone": '联系电话', "political_status": '政治面貌', "time_Party": '入党时间', "time_work": '参加工作时间', "address": '家庭住址', "resume": '个人简历',
-        "edu_start": '第一学历', "time_edu_start": '第一学历毕业时间', "school_edu_start": '第一学历毕业学校', "major_edu_start": '第一学历专业', "edu_end": '最高学历', "time_edu_end": '最高学历毕业时间', "school_edu_end": '最高学历毕业学校', "major_edu_end": '最高学历专业',
-        "skill_title": '专业技术职称', "time_skill": '职称取得时间', "skill_unit": '职称发证单位', "skill_number": '发证文件批号',
-        "time_school": '调入大集中学时间', "work_kind": '用工性质', "job_post": '工作岗位', "time_retire": '退休时间'
+        'person_name': '姓名', 'gender': '性别', 'id_number': '身份证号', 'phone': '联系电话', 'political_status': '政治面貌', 'time_Party': '入党时间', 'time_work': '参加工作时间', 'address': '家庭住址', 'resume': '个人简历',
+        'edu_start': '第一学历', 'time_edu_start': '第一学历毕业时间', 'school_edu_start': '第一学历毕业学校', 'major_edu_start': '第一学历专业', 'edu_end': '最高学历', 'time_edu_end': '最高学历毕业时间', 'school_edu_end': '最高学历毕业学校', 'major_edu_end': '最高学历专业',
+        'skill_title': '专业技术职称', 'time_skill': '职称取得时间', 'skill_unit': '职称发证单位', 'skill_number': '发证文件批号',
+        'time_school': '调入大集中学时间', 'work_kind': '用工性质', 'job_post': '工作岗位', 'time_retire': '退休时间'
     }
 
     workbook = xlsxwriter.Workbook(

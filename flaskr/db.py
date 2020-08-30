@@ -146,8 +146,9 @@ def update_table(table, year, update_item, update_dict, condition_dict):
     for item in condition_dict:
         condition_data.append(item + condition_dict[item])
 
-    sql_update = 'UPDATE '+table_name+' SET '+', '.join(item_data)+' WHERE '+' AND '.join(condition_data)
-    
+    sql_update = 'UPDATE '+table_name+' SET ' + \
+        ', '.join(item_data)+' WHERE '+' AND '.join(condition_data)
+
     db = get_lijing_db()
     db.execute(sql_update)
     db.commit()
@@ -155,9 +156,9 @@ def update_table(table, year, update_item, update_dict, condition_dict):
 
 def select_table(table, year, select_item, condition_dict=None):
     if type(table) == str:
-        #### 单表查询
+        # 单表查询
         table_name = table+'_'+year
-        print('hello')
+
         select_string_list = []
         for item in select_item:
             select_table_name = select_item[item]+'_'+year
@@ -191,45 +192,57 @@ def select_table(table, year, select_item, condition_dict=None):
         else:
             return result_list
     else:
-        #### 多表查询
+        # 多表查询
+        # 获得查询项
         select_string_list = []
         for item in select_item:
             select_table_name = select_item[item]+'_'+year
             select_string_list.append(select_table_name+'.'+item)
-
         select_string = ', '.join(select_string_list)
 
+        # 拼接多表查询语句
         sql_data = {}
         with open('flaskr\\lijing_table.json', 'r') as f:
             sql_data = json.load(f)
 
         join_list = []
+        join_head = []
         for table_name in table:
             flag = False
             for item in sql_data[table_name]:
-                
+
                 if 'foreign_key' in item:
                     table1 = table_name+'_'+year
                     key1 = item['foreign_key'][0]
+                    if item['foreign_key'][1] not in table:
+                        continue
                     table2 = item['foreign_key'][1] + '_'+year
                     key2 = item['foreign_key'][2]
-                    join_string = 'JOIN '+table1+' ON '+table1+'.'+key1+' = '+table2+'.'+key2
+                    join_string = 'LEFT JOIN '+table1+' ON '+table1+'.'+key1+' = '+table2+'.'+key2
 
-                    flag = True
+                    if flag:
+                        join_string = 'AND '+table1+'.'+key1+' = '+table2+'.'+key2
+                    else:
+                        flag = True
                     join_list.append(join_string)
-            
-            if not flag:
-                join_list.insert(0, table_name+'_'+year)
 
+            if not flag:
+                join_head.append(table_name+'_'+year)
+        
+        join_list.insert(0, ' LEFT JOIN '.join(join_head))
+
+        # 获取查询条件
         if condition_dict != None:
             condition_data = []
             for item in condition_dict:
                 condition_data.append(item + condition_dict[item])
 
-            sql_select = 'SELECT '+select_string+' FROM ' + ' '.join(join_list)+' WHERE '+' AND '.join(condition_data)
+            sql_select = 'SELECT '+select_string+' FROM ' + \
+                ' '.join(join_list)+' WHERE '+' AND '.join(condition_data)
         else:
             sql_select = 'SELECT '+select_string+' FROM ' + ' '.join(join_list)
 
+        print(sql_select)
         db = get_lijing_db()
         results = db.execute(sql_select).fetchall()
 
@@ -254,7 +267,13 @@ def get_item_list(table):
         'person': ['person_name', 'gender', 'id_number', 'phone', 'political_status', 'time_Party', 'time_work', 'address', 'resume'],
         'education': ['edu_start', 'time_edu_start', 'school_edu_start', 'major_edu_start', 'edu_end', 'time_edu_end', 'school_edu_end', 'major_edu_end'],
         'skill': ['skill_title', 'time_skill', 'skill_unit', 'skill_number'],
-        'workinfo': ['time_school', 'work_kind', 'job_post', 'time_retire']
+        'workinfo': ['time_school', 'work_kind', 'job_post', 'time_retire'],
+        'school': ['school_id', 'school_name'],
+        'job': ['job_id', 'job_name'],
+        'class': ['class_id', 'class_name'],
+        'rank': ['subject', 'rank_up_school', 'rank_up_country', 'rank_down_school', 'rank_down_country'],
+        'workload': ['workload_id', 'lesson_number', 'year_result'],
+        'honor': ['honor_id', 'school_name', 'honor_time', 'get_time', 'honor_unit', 'honor_name', 'honor_grade', 'honor_number', 'honor_remark']
     }
     if type(table) == list:
         for table_name in table:
@@ -272,5 +291,3 @@ def float_int_string(float_num):
     if type(float_num) != str:
         float_num = str(int(float_num))
     return float_num
-
-

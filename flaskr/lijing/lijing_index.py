@@ -16,7 +16,7 @@ def index():
     # create_table(['person','education','workinfo','skill'], '2020')
     # insert_table('person', '2020', {'person_name': 'lijianran', 'gender': '22', 'id_number': '421223', 'phone': '156',
     #                                 'political_status': '群众', 'time_Party': '暂无', 'time_work': '2020', 'address': '暂无', 'resume': '暂无'})
-    select_table('person', '2020', {'person_id': 'person'}, {'gender': '男'})
+    # select_table('person', '2020', {'person_id': 'person'}, {'gender': '=\'男\''})
     # select_table(['person','education','class'], '2023', {'person_id': 'person'}, {'gender': '男'})
     return render_template('lijing/login.html')
 

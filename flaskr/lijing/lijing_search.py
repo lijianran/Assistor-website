@@ -10,14 +10,8 @@ from flaskr.db import (
     get_db, get_lijing_db, select_table
 )
 
-
-# from random import choice
-# import os
-# import xlrd
 import xlsxwriter
-# import json
-# import datetime
-# from pypinyin import lazy_pinyin
+
 
 bp = Blueprint('lijing_search', __name__, url_prefix='/lijing_search')
 

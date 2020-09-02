@@ -312,6 +312,8 @@
         if (table == "None") {
             $("#" + select_item_id).empty();
             select_item.options.add(new Option("待选择", "None"));
+            document.getElementById("search_string_" + i).placeholder = "**请选择要查询的项**";
+            document.getElementById("search_string_" + i).readOnly = true;
             return;
         }
 
@@ -340,16 +342,18 @@
     function enable_input(id) {
         // 获取输入框
         var i = id[id.length - 1];
-        var select_item = document.getElementById("search_string_" + i);
+        var select_string = document.getElementById("search_string_" + i);
 
         // 判断选择项
         var index = document.getElementById(id).selectedIndex;
         var item = document.getElementById(id).options[index].value;
         if (item != "None") {
-            select_item.readOnly = false;
+            select_string.readOnly = false;
+            select_string.placeholder = "请输入查询内容";
         }
         else {
-            select_item.readOnly = true;
+            select_string.readOnly = true;
+            select_string.placeholder = "**请选择要查询的项**";
         }
     }
 

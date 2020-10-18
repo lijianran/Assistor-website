@@ -25,7 +25,7 @@ def hello():
     if len(year_data) == 0:
         year_list = ['暂无数据']
         session['year_current'] = year_list[0]
-        return render_template('lijing/honorInfo.html', year_list=year_list)
+        return render_template('lijing/search.html', year_list=year_list)
     else:
         for year in year_data:
             year_list.insert(0, year['year'])

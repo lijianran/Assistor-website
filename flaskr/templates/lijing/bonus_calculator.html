@@ -1,0 +1,339 @@
+{% extends 'base_lijing.html' %}
+
+{% block title %}bonus{% endblock %}
+
+
+{% block sidebar %}
+<div class="sidebar-sticky pt-3">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('lijing.board') }}">
+                <span data-feather="home"></span>
+                面板 <span class="sr-only">(current)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="file"></span>
+                成绩统计
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('bonus_calculator.hello') }}">
+                <span data-feather="dollar-sign"></span>
+                奖金统计
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="collapse" data-target="#demo">
+                <span data-feather="users"></span>
+                教师管理
+                <span data-feather="plus-circle"></span>
+            </a>
+            <div class="collapse" id="demo">
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_basicinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师基本信息
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_workinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师业务档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            教师荣誉档案
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lijing_search.hello') }}">
+                            &nbsp;&nbsp;<span data-feather="file-text"></span>
+                            数据检索
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="bar-chart-2"></span>
+                模块四
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <span data-feather="layers"></span>
+                模块五
+            </a>
+        </li>
+    </ul>
+
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div class="jumbotron">
+    <h1 id="jumbotron_string">奖金统计</h1>
+    <p class="lead">...</p>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header" data-toggle="collapse" data-target="#item_block">
+        点击设置 <b>参数</b>
+    </div>
+
+    <div class="collapse" id="item_block">
+        <form class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="total">系数总和</label>
+                    <input type="number" class="form-control" id="total" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="chinese">语文系数</label>
+                    <input type="number" class="form-control" id="chinese" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="math">数学系数</label>
+                    <input type="number" class="form-control" id="math" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="english">英语系数</label>
+                    <input type="number" class="form-control" id="english" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="wl">物理系数</label>
+                    <input type="number" class="form-control" id="wl" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="hx">化学系数</label>
+                    <input type="number" class="form-control" id="hx" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="zz">政治系数</label>
+                    <input type="number" class="form-control" id="zz" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="ls">历史系数</label>
+                    <input type="number" class="form-control" id="ls" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="dl">地理系数</label>
+                    <input type="number" class="form-control" id="dl" onchange="add_total(this.id, this.value)">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="sw">生物系数</label>
+                    <input type="number" class="form-control" id="sw" onchange="add_total(this.id, this.value)">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="class1">一类尖子生个数</label>
+                    <input type="number" class="form-control" id="class1">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="bonus1">奖金</label>
+                    <input type="number" class="form-control" id="bonus1">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="ebonus1">额外奖金</label>
+                    <input type="number" class="form-control" id="ebonus1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="class2">二类尖子生个数</label>
+                    <input type="number" class="form-control" id="class2">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="bonus2">奖金</label>
+                    <input type="number" class="form-control" id="bonus2">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="ebonus2">额外奖金</label>
+                    <input type="number" class="form-control" id="ebonus2">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="bonus_average">平均分奖金</label>
+                    <input type="number" class="form-control" id="bonus_average" placeholder="">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="bonus3">额外奖金</label>
+                    <input type="number" class="form-control" id="bonus3">
+                </div>
+            </div>
+
+        </form>
+
+
+        <div class="card-footer" data-toggle="collapse" data-target="#item_block">
+            点击 <b>收起</b>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-primary" role="alert">
+    点击 <b>输入框</b> 选择要导入的Excel表格(.xlsx)，点击按钮 <b>开始统计</b> 进行奖金统计。
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-3"></div>
+
+    <div class="col-md-6 input-group mb-3">
+        <div class="custom-file">
+            <form action="{{ url_for('lijing_workinfo.importData') }}" enctype='multipart/form-Data' method='POST'
+                id="readfile_form">
+                <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input" id="input_file"
+                    name="file" required>
+                <label id="filename_label" class="custom-file-label" for="input_file">选择文件</label>
+            </form>
+        </div>
+        <div class="input-group-append">
+            <button class="btn btn-primary" id="button_readfile" onclick="read_file()">开始统计</button>
+        </div>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+
+<div class="input-group">
+    <div class="input-group-prepend">
+        <span class="input-group-text">日志输出：</span>
+    </div>
+    <textarea class="form-control" rows="10" aria-label="With textarea" id="log" readonly></textarea>
+</div>
+
+{% endblock content %}
+
+
+
+{% block files %}
+<script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
+
+<script>
+    var item_subject = ['chinese', 'math', 'english', 'wl', 'hx', 'zz', 'ls', 'dl', 'sw'];
+    var item = ['chinese', 'math', 'english', 'wl', 'hx', 'zz', 'ls', 'dl', 'sw',
+        'class1', 'class2', 'bonus1', 'bonus2', 'ebonus1', 'ebonus2', 'bonus_average', 'bonus3'];
+
+    function add_total(id, value) {
+        if (value < 0) {
+            document.getElementById(id).value = 0;
+        }
+        var total = 0.0;
+
+        for (var i = 0; i < item_subject.length; i++) {
+            total += Number(document.getElementById(item_subject[i]).value);
+        }
+        document.getElementById("total").value = total.toFixed(2);
+    }
+
+
+    function init() {
+        document.getElementById("chinese").value = '1';
+        document.getElementById("math").value = '1';
+        document.getElementById("english").value = '0.8';
+        document.getElementById("wl").value = '0.55';
+        document.getElementById("hx").value = '0.5';
+        document.getElementById("zz").value = '0.15';
+        document.getElementById("ls").value = '0.15';
+        document.getElementById("dl").value = '0.15';
+        document.getElementById("sw").value = '0.15';
+
+        document.getElementById("class1").value = '10';
+        document.getElementById("class2").value = '20';
+
+        document.getElementById("bonus1").value = '500';
+        document.getElementById("bonus2").value = '300';
+
+        document.getElementById("ebonus1").value = '60';
+        document.getElementById("ebonus2").value = '40';
+
+        document.getElementById("bonus_average").value = '100';
+        document.getElementById("bonus3").value = '8';
+
+
+        add_total();
+    }
+    init();
+
+    function showFilename(file) {
+        $("#filename_label").html(file.name);
+    };
+
+    function read_file() {
+        if (document.getElementById("input_file").value == 0) {
+            window.alert('请选择文件');
+            return;
+        }
+
+        var formData = new FormData($('#readfile_form')[0]);
+
+        item_value = []
+        for (var i = 0; i < item.length; i++) {
+            item_value.push(document.getElementById(item[i]).value);
+
+        }
+        formData.append("item_value", item_value);
+
+
+        $.ajax({
+            url: "/bonus_calculator/calculator_bonus",
+            type: "POST",
+            data: formData,
+            async: true,
+            cashe: false,
+            contentType: false,
+            processData: false,
+            success: function (returndata) {
+                if (returndata.msg != '成功') {
+                    document.getElementById("log").append(returndata.msg);
+                }
+                else {
+                    document.getElementById("log").innerText = '';
+                    document.getElementById("button_readfile").disabled = true;
+                    document.getElementById("button_readfile").innerText = '统计已完成';
+                    document.getElementById("input_file").disabled = true;
+                    log = returndata['log'];
+
+                    class_list = returndata['class_list'];
+                    teacher_list = returndata['teacher_list'];
+                    document.getElementById("log").append('共有' + class_list.length + '个班级，' + teacher_list.length + '位教师\n');
+
+
+                    for (var i in log) {
+                        document.getElementById("log").append(log[i]);
+                    }
+
+                    window.location.href = '/lijing/download_excel_file/' + returndata.filename;
+                }
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                window.alert("上传失败！")
+                //alert("进入error---");
+                //alert("状态码：" + xhr.status);
+                //alert("状态:" + xhr.readyState); //当前状态,0-未初始化，1-正在载入，2-已经载入，3-数据进行交互，4-完成。
+                //alert("错误信息:" + xhr.statusText);
+                //alert("返回响应信息：" + xhr.responseText);//这里是详细的信息
+                //alert("请求状态：" + textStatus);
+                //alert(errorThrown);
+                //alert("请求失败");
+            }
+        });
+    }
+
+
+</script>
+{% endblock %}

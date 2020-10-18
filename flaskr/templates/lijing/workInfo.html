@@ -3,23 +3,6 @@
 <h1>{% block title %}work{% endblock %}</h1>
 
 
-{#{% block tools %}
-
-<div class="list-group">
-    <a href="#" class="list-group-item list-group-item-action list-group-item-dark" data-toggle="collapse"
-        data-target="#demo">教师管理</a>
-    <div class="list-group collapse show" id="demo">
-        <a href="{{ url_for('lijing_basicinfo.hello') }}" class="list-group-item list-group-item-action">1.教师基本信息</a>
-        <a href="{{ url_for('lijing_workinfo.hello') }}"
-            class="list-group-item list-group-item-action active">2.教师业务档案</a>
-        <a href="{{ url_for('lijing_honorinfo.hello') }}" class="list-group-item list-group-item-action">3.教师荣誉档案</a>
-    </div>
-    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块二</a>
-    <a href="#" class="list-group-item list-group-item-action list-group-item-dark">模块三</a>
-</div>
-{% endblock %}#}
-
-
 {% block sidebar %}
 <div class="sidebar-sticky pt-3">
     <ul class="nav flex-column">
@@ -32,13 +15,13 @@
         <li class="nav-item">
             <a class="nav-link" href="#">
                 <span data-feather="file"></span>
-                模块一
-            </a>
+                成绩统计
+              </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">
-                <span data-feather="shopping-cart"></span>
-                模块二
+            <a class="nav-link" href="{{ url_for('bonus_calculator.hello') }}">
+                <span data-feather="dollar-sign"></span>
+                奖金统计
             </a>
         </li>
         <li class="nav-item">
@@ -90,42 +73,6 @@
             </a>
         </li>
     </ul>
-
-    <!-- <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-        <span>教师管理</span>
-        <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report" data-toggle="collapse"
-            data-target="#demo">
-            <span data-feather="plus-circle"></span>
-        </a>
-    </h6>
-    <div class="collapse show" id="demo">
-        <ul class="nav flex-column mb-2">
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('lijing_basicinfo.hello') }}">
-                    <span data-feather="file-text"></span>
-                    教师基本信息
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" href="{{ url_for('lijing_workinfo.hello') }}">
-                    <span data-feather="file-text"></span>
-                    教师业务档案
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('lijing_honorinfo.hello') }}">
-                    <span data-feather="file-text"></span>
-                    教师荣誉档案
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <span data-feather="file-text"></span>
-                    数据检索
-                </a>
-            </li>
-        </ul>
-    </div> -->
 
 </div>
 {% endblock %}

@@ -170,12 +170,12 @@
     <div class="row">
 
       <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-        {% block sidebar %}
 
         <div class="sidebar-sticky pt-3">
-          <ul class="nav flex-column">
+
+          <ul class="nav flex-column" id="ul_header">
             <li class="nav-item">
-              <a class="nav-link active" href="{{ url_for('lijing.board') }}">
+              <a class="nav-link" href="{{ url_for('lijing.board') }}">
                 <span data-feather="home"></span>
                 面板 <span class="sr-only">(current)</span>
               </a>
@@ -241,9 +241,9 @@
               </a>
             </li>
           </ul>
+
         </div>
 
-        {% endblock %}
       </nav>
 
       <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
@@ -278,7 +278,6 @@
   </div>
 
 
-
   <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
   <script src="../static/bootstrap-4.4.1-dist/js/jquery-3.3.1.min.js"></script>
   <script src="../static/bootstrap-4.4.1-dist/js/popper.min.js"></script>
@@ -294,34 +293,11 @@
   <script src="../static/bootstrap-table/bootstrap-table.min.js"></script>
   <script src="../static/bootstrap-table/bootstrap-table-zh-CN.min.js"></script>
 
+  <script src="../static/js/base_lijing.js"></script>
 
-  <!-- 
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-    crossorigin="anonymous"></script>
-  <script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery.slim.min.js"><\/script>')</script> -->
+  {% block javascript %}
+  {% endblock %}
 
-  <!-- <script src="../assets/dist/js/bootstrap.bundle.js"></script> -->
-  <!-- <script src="../static/bootstrap-4.4.1-dist/js/bootstrap.bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script> -->
-  <!-- <script src="dashboard.js"></script> -->
-  <!-- <script src="../static/dashboard.js"></script> -->
-
-
-  <script>
-    feather.replace()
-    //$('#link_basicinfo').click(function (event) {
-      //$(event.target).addClass('active');
-      //$("#detailModal input").attr("readOnly", true);
-      //event.target.classList.add('active');
-    //});
-
-    //document.getElementById("link_basicinfo").classList.add('active');
-
-  </script>
-
-  {% block files %}{% endblock %}
 </body>
 
 </html>

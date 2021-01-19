@@ -36,9 +36,13 @@ def hello():
     school_list = []
     school_id = []
     school_data = select_table('school', session['year_current'], {'school_id':'school', 'school_name':'school'})
-    for i in school_data:
-        school_list.append(i['school_name'])
-        school_id.append(i['school_id'])
+    if type(school_data)==dict:
+        school_list.append(school_data['school_name'])
+        school_id.append(school_data['school_id'])
+    else:
+        for i in school_data:
+            school_list.append(i['school_name'])
+            school_id.append(i['school_id'])
 
     if len(school_list) != 1:
         school_list = school_list[1:]

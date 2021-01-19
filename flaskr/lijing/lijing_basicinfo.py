@@ -68,7 +68,6 @@ def jsondata():
         return jsonify({'total': len(data), 'rows': data[int(offset):(int(offset) + int(limit))]})
 
 
-
 # 导入表格数据
 @bp.route('/importData', methods=('GET', 'POST'))
 def importData():
@@ -84,9 +83,11 @@ def importData():
         year_select = request.form.get('year_select')
         if year_select not in year_list:
             # 插入新的年份
-            db.execute('insert into year_list (year, basicinfo, workinfo, honorinfo) values (?,?,?,?)', (year_select, 0, 0, 0, ))
+            db.execute(
+                'insert into year_list (year, basicinfo, workinfo, honorinfo) values (?,?,?,?)', (year_select, 0, 0, 0, ))
             # 新年份创建新的表
-            create_table(['person', 'education', 'workinfo', 'skill'], year_select)
+            create_table(
+                ['person', 'education', 'workinfo', 'skill'], year_select)
 
         # 获取选择的表格文件
         f = request.files['file']
@@ -96,7 +97,8 @@ def importData():
         if filename.endswith('.xlsx'):
             # 保存文件到服务器uploads文件夹
             basepath = os.path.dirname(__file__)
-            upload_path = os.path.join(basepath, '..\\static\\uploads', filename)
+            upload_path = os.path.join(
+                basepath, '..\\static\\uploads', filename)
             f.save(upload_path)
 
             # 打开保存后的文件
@@ -150,8 +152,8 @@ def importData():
                 insert_table('person', year_select, item_person, insert_dict)
 
                 # 获取自动生成的person_id
-                person_id = select_table('person', year_select, {'person_id': 'person'}, {
-                                         'person_name': insert_dict['person_name']})['person_id']
+                condition = { 'person_name': ' = \'' + insert_dict['person_name'] + '\'' }
+                person_id = select_table('person', year_select, {'person_id': 'person'}, condition)['person_id']
                 insert_dict['person_id'] = float_int_string(person_id)
 
                 # 插入其他表
@@ -198,7 +200,7 @@ def search():
     # 查询结果
     condition = 'person_' + year + '.person_id'
     result = select_table(['person', 'education', 'skill', 'workinfo'], year, item, {
-                          condition: '=\''+float_int_string(person_id)+'\''})
+                          condition: ' = \'' + float_int_string(person_id) + '\''})
 
     # 返回结果
     return jsonify(result)
@@ -222,7 +224,7 @@ def add_data():
 
     # 获取自动生成的person_id
     person_id = select_table('person', year_select, {'person_id': 'person'}, {
-                             'person_name': insert_dict['person_name']})['person_id']
+                             'person_name': ' = \'' + insert_dict['person_name'] + '\''})['person_id']
     insert_dict['person_id'] = float_int_string(person_id)
 
     # 添加数据到其他表

@@ -15,3 +15,5 @@ build/
 
 flaskr/static/uploads/
 flaskr/static/downloads/
+
+.vscode/

@@ -73,7 +73,7 @@ def calculator_bonus():
             item_average = ['语文人平', '数学人平', '英语人平', '物理人平',
                             '化学人平', '政治人平', '历史人平', '地理人平', '生物人平']
             item_teacher = ['语文教师', '数学教师', '英语教师', '物理教师',
-                            '化学人平', '政治教师', '历史教师', '地理教师', '生物教师']
+                            '化学教师', '政治教师', '历史教师', '地理教师', '生物教师']
 
             # 日志数据
             log = {}
@@ -118,6 +118,7 @@ def calculator_bonus():
                         if table_row[id_dict[item]] != '':
                             teacher_list.append(table_row[id_dict[item]])
             teacher_list = list(set(teacher_list))
+            print(teacher_list)
             teacher_list = sorted(teacher_list)
 
             # 平均分奖金计算

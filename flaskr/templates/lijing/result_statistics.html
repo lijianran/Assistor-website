@@ -1,0 +1,423 @@
+{% extends 'base_lijing.html' %}
+
+{% block title %}result{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 id="jumbotron_string">成绩统计</h1>
+    <p class="lead">...</p>
+</div>
+
+
+<div class="row mb-3">
+    <div class="col-md-3"></div>
+
+    <div class="col-md-6 input-group mb-3">
+        <div class="custom-file">
+            <form action="{{ url_for('result_statistics.exportData') }}" enctype='multipart/form-Data' method='POST'
+                id="readfile_form">
+                <input onchange="showFilename(this.files[0])" type="file" class="custom-file-input" id="input_file"
+                    name="file" required>
+                <label id="filename_label" class="custom-file-label" for="input_file">选择文件</label>
+            </form>
+        </div>
+        <div class="input-group-append">
+            <button class="btn btn-primary" id="button_readfile" onclick="read_file()">读取数据</button>
+        </div>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+
+
+<div class="card bg-light mb-3 text-center" id="select_card">
+    <div class="card-header"></div>
+    <div class="card-body">
+        <h5 class="card-title">选择数据</h5>
+        <p class="card-text" id="card_text">表格中包含有 多 列数据</p>
+        <div class="alert alert-info" role="alert">
+            姓名、学号、班级、总分、数据 必须选择。
+        </div>
+        <div id="title_select_card">
+            <!-- <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect_name">姓名11</label>
+                </div>
+                <select class="custom-select" id="inputGroupSelect_name" name="title_select">
+                </select>
+            </div> -->
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-5"></div>
+            <button class="btn btn-primary col-md-2" onclick="export_data()">导出</button>
+            <div class="col-md-5"></div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-5"></div>
+            <button class="btn btn-primary col-md-2" onclick="show_setting_modal()">设置</button>
+            <div class="col-md-5"></div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-5"></div>
+            <button class="btn btn-primary col-md-2" onclick="result_statistics()">统计成绩</button>
+            <div class="col-md-5"></div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="settingModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <!-- 模态框头部 -->
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-import-title">设置</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+
+                <div class="alert alert-primary" role="alert">
+                    导入教师、有效人数表格
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3"></div>
+
+                    <div class="col-md-6 input-group mb-3">
+                        <div class="custom-file">
+                            <form action="{{ url_for('result_statistics.exportData') }}" enctype='multipart/form-Data'
+                                method='POST' id="readfile_form2">
+                                <input onchange="showFilename2(this.files[0])" type="file" class="custom-file-input"
+                                    id="input_file2" name="file2" required>
+                                <label id="filename_label2" class="custom-file-label" for="input_file2">选择文件</label>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3"></div>
+                </div>
+
+                <div class="alert alert-primary" role="alert">
+                    尖子生个数
+                </div>
+                <div class="form-row">
+                    <div class="col-md-1"></div>
+                    <div class="form-group col-md-4">
+                        <label for="class1">一类尖子生个数：</label>
+                        <input type="number" class="form-control" id="class1">
+                    </div>
+                    <div class="col-md-2"></div>
+                    <div class="form-group col-md-4">
+                        <label for="class2">二类尖子生个数：</label>
+                        <input type="number" class="form-control" id="class2">
+                    </div>
+                    <div class="col-md-1"></div>
+                </div>
+
+
+                <div class="alert alert-secondary" role="alert">
+                    不计入成绩统计的学生（选填）
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">不计入统计学生考号：</span>
+                    </div>
+                    <textarea class="form-control" rows="5" aria-label="With textarea" id="delete"></textarea>
+                </div>
+
+                <div class="alert alert-secondary" role="alert">
+                    需要调整班级的学生（选填）
+                </div>
+                <div class="row">
+
+                    <div class="input-group col-md-6 mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">需调整的考号：</span>
+                        </div>
+                        <textarea class="form-control" rows="5" aria-label="With textarea"
+                            id="change_examid"></textarea>
+                    </div>
+                    <div class="input-group col-md-6 mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">对应的班级：</span>
+                        </div>
+                        <textarea class="form-control" rows="5" aria-label="With textarea"
+                            id="change_class"></textarea>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- 模态框底部 -->
+            <div class="modal-footer">
+                <!-- <button type="button" id="add_person" class="btn btn-primary" onclick="export_table()">导出</button> -->
+                <button type="button" class="btn btn-primary" data-dismiss="modal">保存</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block javascript %}
+
+<script type=text/javascript> $SCRIPT_ROOT={{ request.script_root|tojson|safe }}; </script>
+
+<!-- <script src="../../static/js/result_statistics.js"></script> -->
+
+<script>
+
+    document.getElementById("select_card").style.display = "none";
+
+    document.getElementById("class1").value = "340";
+    document.getElementById("class2").value = "680";
+
+
+
+    function read_file() {
+        var formData = new FormData($('#readfile_form')[0]);
+
+        $.ajax({
+            url: "/result_statistics/readfile",
+            type: "POST",
+            data: formData,
+            async: true,
+            cashe: false,
+            contentType: false,
+            processData: false,
+            success: function (returndata) {
+                if (returndata.msg != '成功') {
+                    document.getElementById("select_card").style.display = "none";
+                    window.alert(returndata.msg);
+                }
+                else {
+                    document.getElementById("card_text").innerHTML = '表格中共包含 ' + returndata.table_col.length + ' 列数据'
+                    item = {
+                        '姓名*': 'name', '考号*': 'examid', '班级*': 'class',
+                        '总分*': 'total', '语文': 'chinese', '数学': 'math',
+                        '英语': 'english', '物理': 'wuli', '化学': 'huaxue', '道法': 'daofa',
+                        '历史': 'lishi', '地理': 'dili', '生物': 'shenwu'
+                    }
+
+
+                    var card = document.getElementById("title_select_card");
+                    card.innerHTML = "";
+                    var index = 0;
+                    for (var i in item) {
+                        select_id = 'select_' + item[i];
+                        var d1 = document.createElement("div");
+                        d1.className = "input-group mb-3";
+                        var d2 = document.createElement("div");
+                        d2.className = "input-group-prepend";
+                        var s = document.createElement("select");
+                        s.className = "custom-select";
+                        s.id = select_id;
+                        s.options.add(new Option('无', 0));
+                        for (var j = 0; j < returndata.table_col.length; j++) {
+                            option_string = returndata.table_col[j];
+                            s.options.add(new Option(option_string, j + 1));
+                        }
+
+                        s.selectedIndex = returndata.col_index[index] + 1;
+                        index++;
+
+                        var l = document.createElement("label");
+                        l.className = "input-group-text";
+                        l.setAttribute("for", select_id);
+                        l.innerHTML = i;
+
+                        d2.appendChild(l);
+                        d1.appendChild(d2);
+                        d1.appendChild(s);
+                        card.appendChild(d1);
+                    }
+
+                    {
+                        select_id = 'select_data';
+                        var d1 = document.createElement("div");
+                        d1.className = "input-group mb-3";
+                        var d2 = document.createElement("div");
+                        d2.className = "input-group-prepend";
+                        var s = document.createElement("select");
+                        s.className = "custom-select";
+                        s.id = select_id;
+                        s.options.add(new Option('无', 0));
+                        for (var j = 0; j < returndata.table_row.length; j++) {
+                            option_string = returndata.table_row[j];
+                            s.options.add(new Option(option_string, j + 1));
+                        }
+                        s.selectedIndex = returndata.row_data + 1;
+
+                        var l = document.createElement("label");
+                        l.className = "input-group-text";
+                        l.setAttribute("for", select_id);
+                        l.innerHTML = "数据*";
+
+                        d2.appendChild(l);
+                        d1.appendChild(d2);
+                        d1.appendChild(s);
+                        card.appendChild(d1);
+                    }
+
+                    document.getElementById("select_card").style.display = "block";
+                    document.getElementById("input_file").disabled = true;
+                    document.getElementById("button_readfile").disabled = true;
+                }
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // window.alert("上传失败！")
+                // alert("进入error---");
+                // alert("状态码：" + xhr.status);
+                // alert("状态:" + xhr.readyState); //当前状态,0-未初始化，1-正在载入，2-已经载入，3-数据进行交互，4-完成。
+                // alert("错误信息:" + xhr.statusText);
+                // alert("返回响应信息：" + xhr.responseText);//这里是详细的信息
+                // alert("请求状态：" + textStatus);
+                // alert(errorThrown);
+                // alert("请求失败");
+            }
+        });
+    }
+
+    function export_data() {
+        document.getElementById("input_file").disabled = false;
+        var formData = new FormData($('#readfile_form')[0]);
+
+        item_select = ['name', 'examid', 'class', 'total', 'chinese', 'math', 'english', 'wuli', 'huaxue', 'daofa', 'lishi', 'dili', 'shenwu']
+        item_id_list = []
+        var len_item_select = item_select.length;
+        for (var i = 0; i < len_item_select; i++) {
+            var select_id = document.getElementById('select_' + item_select[i]).selectedIndex;
+            item_id_list.push(select_id);
+        }
+
+        if (item_id_list[0] == 0 || item_id_list[1] == 0 || item_id_list[2] == 0 || item_id_list[3] == 0) {
+            window.alert('请选择姓名、学号、班级、总分');
+            return;
+        }
+
+        var index_data = document.getElementById('select_data').selectedIndex;
+        if (index_data == 0) {
+            window.alert('请选择数据')
+            return;
+        }
+
+        formData.append("item_id_list", item_id_list);
+        formData.append("index_data", index_data);
+
+        $.ajax({
+            url: "/result_statistics/exportData",
+            type: "POST",
+            data: formData,
+            async: true,
+            cashe: false,
+            contentType: false,
+            processData: false,
+            success: function (returndata) {
+                window.location.href = '/lijing/download_excel_file/' + returndata.filename;
+                document.getElementById("input_file").disabled = true;
+            },
+            error: function (returndata) {
+                window.alert("上传失败！")
+                document.getElementById("input_file").disabled = true;
+            }
+        });
+
+    }
+
+
+    function result_statistics() {
+        document.getElementById("input_file").disabled = false;
+        var formData = new FormData();
+        formData.append('file', $('#input_file')[0].files[0]);
+
+        if (!document.getElementById('input_file2').value) {
+            window.alert("请输入教师、有效人数表");
+            return;
+        }
+        formData.append('file2', $('#input_file2')[0].files[0])
+
+        var class1 = document.getElementById("class1").value;
+        var class2 = document.getElementById("class2").value;
+        if (class1 <= 0 || class2 <= 0) {
+            window.alert("尖子生个数必须大于0");
+            return;
+        }
+        formData.append("class1", class1);
+        formData.append("class2", class2);
+
+        item_select = ['name', 'examid', 'class', 'total', 'chinese', 'math', 'english', 'wuli', 'huaxue', 'daofa', 'lishi', 'dili', 'shenwu']
+        item_id_list = []
+        var len_item_select = item_select.length;
+        for (var i = 0; i < len_item_select; i++) {
+            var select_id = document.getElementById('select_' + item_select[i]).selectedIndex;
+            item_id_list.push(select_id);
+        }
+
+        if (item_id_list[0] == 0 || item_id_list[1] == 0 || item_id_list[2] == 0 || item_id_list[3] == 0) {
+            window.alert('请选择姓名、学号、班级、总分');
+            return;
+        }
+
+        var index_data = document.getElementById('select_data').selectedIndex;
+        if (index_data == 0) {
+            window.alert('请选择数据')
+            return;
+        }
+
+        formData.append("item_id_list", item_id_list);
+        formData.append("index_data", index_data);
+
+        var delete_id = document.getElementById("delete").value;
+        formData.append("delete_id", delete_id);
+
+        var change_examid = document.getElementById("change_examid").value;
+        formData.append("change_examid", change_examid);
+
+        var change_class = document.getElementById("change_class").value;
+        formData.append("change_class", change_class);
+
+        $.ajax({
+            url: "/result_statistics/resultStatistics",
+            type: "POST",
+            data: formData,
+            async: true,
+            cashe: false,
+            contentType: false,
+            processData: false,
+            success: function (returndata) {
+                if (returndata.msg != '成功') {
+                    window.alert(returndata.msg);
+                }
+                window.location.href = '/lijing/download_excel_file/' + returndata.filename;
+            },
+            error: function (returndata) {
+                window.alert("上传失败！")
+            }
+        });
+
+    }
+
+    function show_setting_modal() {
+        $('#settingModal').modal('show');
+    }
+
+    function showFilename(file) {
+        $("#filename_label").html(file.name);
+    };
+
+    function showFilename2(file) {
+        $("#filename_label2").html(file.name);
+    };
+
+
+</script>
+{% endblock %}

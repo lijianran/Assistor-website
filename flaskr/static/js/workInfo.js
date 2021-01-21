@@ -297,7 +297,7 @@ function read_file() {
             }
             else {
 
-                document.getElementById("card_text").innerHTML = '表格共中包含 ' + returndata.table_title.length + ' 列数据'
+                document.getElementById("card_text").innerHTML = '表格中共包含 ' + returndata.table_title.length + ' 列数据'
                 item = {
                     '姓名*': 'person_name', '分校': 'school', '职务': 'job_name',
                     '总课时数': 'lesson_number', '年度考核': 'year_result', '任教班级': 'class_id', '任教学科': 'subject',

@@ -56,4 +56,7 @@ def create_app(test_config=None):
     from .lijing import bonus_calculator
     app.register_blueprint(bonus_calculator.bp)
 
+    from .lijing import result_statistics
+    app.register_blueprint(result_statistics.bp)
+
     return app

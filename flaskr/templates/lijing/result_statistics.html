@@ -396,6 +396,7 @@
             success: function (returndata) {
                 if (returndata.msg != '成功') {
                     window.alert(returndata.msg);
+                    return;
                 }
                 window.location.href = '/lijing/download_excel_file/' + returndata.filename;
             },

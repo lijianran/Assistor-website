@@ -395,8 +395,10 @@ def resultStatistics():
                 if row_value[items[item]] == "":
                     data_row.append(0.0)
                 else:
-                    if item == "班级" or item == "考号":
-                        data_row.append(int(row_value[items[item]]))
+                    if item == "班级":
+                        data_row.append(int(float_int_string(row_value[items[item]])))
+                    elif item == "考号":
+                        data_row.append(float_int_string(row_value[items[item]]))
                     else:
                         data_row.append(row_value[items[item]])
                     pass
@@ -425,7 +427,7 @@ def resultStatistics():
             for j in range(len(data_table)):
                 if change_exam_id == data_table[j][1]:
                     flag = True
-                    data_table[j][2] = change_class_list[i]
+                    data_table[j][2] = int(change_class_list[i])
                     pass
                 pass
             if not flag:
@@ -454,12 +456,13 @@ def resultStatistics():
         for i in delete_id_list:
             if i == "":
                 continue
+            i = i.replace("\r", "")
             delete_id_dict[i] = True
             pass
 
         for i in range(len(data_table)):
             exam_id = data_table[i][1]
-            if exam_id in delete_id_list:
+            if exam_id in delete_id_dict:
                 delete_id_dict[exam_id] = False
                 index_delele.append(i)
             pass
@@ -523,11 +526,11 @@ def resultStatistics():
                 msg = "教师、有效人数表格：找不到班级 %s" % str(class_name)
                 return jsonify({"msg": msg})
 
-            # 有效人数
+            # # 有效人数
             average_num = int(data_table2[index_teacher_number][-1])
-            if average_num > len(class_students_result):
-                msg = "教师、有效人数表格：%s班有效人数错误" % str(class_name)
-                return jsonify({"msg": msg})
+            # if average_num > len(class_students_result):
+            #     msg = "教师、有效人数表格：%s班有效人数错误" % str(class_name)
+            #     return jsonify({"msg": msg})
 
             # 每个班级的数据
             data_class = []
@@ -556,8 +559,14 @@ def resultStatistics():
 
                 # 计算平均分
                 sum_result = 0
-                for i in range(0, average_num):
-                    sum_result = sum_result + class_students_result[i][index_item]
+                if average_num <= len(class_students_result):
+                    for i in range(0, average_num):
+                        sum_result = sum_result + class_students_result[i][index_item]
+                    pass
+                else:
+                    for i in range(0, len(class_students_result)):
+                        sum_result = sum_result + class_students_result[i][index_item]
+                    pass
 
                 average_result = sum_result / average_num
                 data_class.append(average_result)
